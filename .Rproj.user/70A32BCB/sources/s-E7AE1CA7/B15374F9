@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1567970604019.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4146661476",
+    "id" : "B15374F9",
+    "lastKnownWriteTime" : 1567759374,
+    "last_content_update" : 1567759374,
+    "path" : "D:/rjob/Yes_SA/YES_shiny/yes_dashboard.Rmd",
+    "project_path" : "yes_dashboard.Rmd",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
