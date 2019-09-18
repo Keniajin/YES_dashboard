@@ -3,7 +3,8 @@ library(flexdashboard)
 #library(billboarder)
 shinyUI(
   dashboardPage(#theme = shinytheme("sandstone") ,
-    dashboardHeader(), #dashboardHeader(title = "Menu Select")
+    dashboardHeader(title = tags$a(href='https://www.yes4youth.co.za/',
+                                   tags$img(src='images/logo.png'))), #dashboardHeader(title = "Menu Select")
     
     dashboardSidebar(width="20%",
                      column(12,
@@ -37,18 +38,18 @@ shinyUI(
                 fluidRow(
                   ## output the money in
                 column(3, class="gauge_bg" ,
-                   uiOutput("total_injection"),
+                   uiOutput(class="total_inject" ,"total_injection"),
                   gaugeOutput("exact_injection" ,
                               width = "100%", height = "auto")),#,
                  ##youth commitment
-                 column(3, uiOutput("youth_commited"),
+                 column(3, uiOutput(class="youth_commmit" ,"youth_commited"),
                   gaugeOutput("youth_placed" ,
                                        width = "100%", height = "auto")),
                  ##
-                 column(3,uiOutput("total_companies"),
+                 column(3,uiOutput(class="companies" ,"total_companies"),
                  gaugeOutput("registered_perc" ,
                                        width = "100%", height = "auto")),
-                column(3,uiOutput("less_earn"),
+                column(3,uiOutput(class="youth_earn" ,"less_earn"),
                        gaugeOutput("earn_gauge" ,
                                    width = "100%", height = "auto"))
                   # uiOutput("total_placed_2"),
@@ -93,7 +94,8 @@ shinyUI(
               #  numericInput("maxrows", "Rows to show", 25),
                 #verbatimTextOutput("rawtable"),
                 #downloadButton("downloadCsv", "Download as CSV")
-              DT::DTOutput("tbl")
+              DT::DTOutput("tbl"),
+              downloadLink('downloadData', 'Download data')
         )
       )
     )

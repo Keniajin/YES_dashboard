@@ -4,19 +4,12 @@ output:
   flexdashboard::flex_dashboard:
   theme: cosmo
 orientation: rows
+logo: images/logo_tiny.png
 vertical_layout: scroll
 runtime: shiny
 ---
 
-<style>                     
-.navbar {
-  background-color:orange;
-  border-color:white;
-}
-.navbar-brand {
-color:black!important;
-}
-</style>
+
 
   
 ```{r setup, include=FALSE}
@@ -42,7 +35,6 @@ Country Overview {data-width=300}
 
 ```{r}
 shinyAppDir("prov_summary")
-
 ```
 
 
@@ -54,5 +46,8 @@ Company Overview {data-width=300}
 
 Youth dashboard {data-width=300}
 ======
+```{r}
+shinyAppDir("youth_page")
+```
 
 

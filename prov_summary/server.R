@@ -25,7 +25,7 @@ daily_read <- readxl::read_xls("data/raw/daily_report 04-09-2019.xls" ,
 ## read in the daily report 
 ## confirm with Maria the fitering procedure
 total_companies <- daily_read %>% 
-  filter(`Registration Status`=="Registered") %>% 
+  filter(`Registration Status`=="Registered" | `Registration Status`=="Initial Signup" ) %>% 
   filter(`CRM Status` %ni% c("Requested Refund","Potential Host", "Archived" ))
 co_select <- total_companies %>% 
   select(`Registration Status`) %>% 
@@ -82,8 +82,8 @@ shinyServer(function(input, output, session) {
   
   
   
-  # table of te first file
-  output$tbl <-  DT::renderDT({
+# table of te first file
+output$tbl <-  DT::renderDT({
   #   folder_choose <- parseDirPath(c(home = wd_this) ,input$folderChoose)
   #   if(input$folderChoose!=""){
   #   all_datas <- list.files(sel_path() , recursive = T)
@@ -98,9 +98,17 @@ shinyServer(function(input, output, session) {
     
      #options = list(lengthChange = FALSE,
                   #  initComplete = JS('function(setting, json) { alert("done"); }'))
-  })
- 
-  
+})
+
+## download the province data 
+output$downloadData <- downloadHandler(
+     filename = function() {
+       paste('data-', Sys.Date(), '.csv', sep='')
+     },
+     content = function(tbl) {
+       write.csv(data, tbl)
+})
+
 
 
 ## empty plot for adding to before data load
@@ -148,11 +156,10 @@ total_companies_R <- reactive({
 ##---------------------------------------------------------
 output$total_injection<-renderInfoBox({
   total_injection <- total_injection_value()
-
   infoBox("Total Injection: ",paste0("R ",formatC(total_injection,format="d", big.mark = ",") ),
           subtitle = "in the local economies" ,
           icon = shiny::icon("dollar"),
-          color = "fuchsia",width = 4,fill = TRUE)
+         width = 4,fill = TRUE)
 })
 
 ### gauge of the exact investment
