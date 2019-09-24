@@ -8,8 +8,9 @@ library(tidyverse)
 
 
 ## read in the baseline data
-baseline <- readxl::read_xlsx("data/raw/from_mandla/surveyData_baseline.xlsx")
+#baseline <- readxl::read_xlsx("data/raw/from_mandla/surveyData_baseline.xlsx")
 
+baseline <- readr::read_csv(file.path("http://survey.yes4youth.mobi/surveydata/baseline"))
 ## cleanup the education 
 ## create a dataset to view the number of categories we have for education
 aa <- baseline %>% 

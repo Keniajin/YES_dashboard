@@ -19,8 +19,12 @@ library(shinyjs)
 #library(billboarder)
 placed_youth_unique <- read_csv("data/processed/placed_youth_unique.csv")
 
-daily_read <- readxl::read_xls("data/raw/daily_report 04-09-2019.xls" ,
-                               sheet = "Worksheet" )
+daily_read <- readr::read_csv("data/processed/daily_report_cleaned.csv" ,
+                               guess_max =  10000 )
+
+## company registration
+## created from the daily report cleanup file
+company_status_reg  <- readr::read_csv("data/processed/company_status_reg.csv")
 
 ## read in the daily report 
 ## confirm with Maria the fitering procedure
@@ -34,19 +38,6 @@ co_select <- total_companies %>%
   filter(!is.na(`Registration Status`))
 co_select %>% filter(`Registration Status`=="Registered") %>% 
   select(reg_stat) %>% unlist()
-
-
-## 
-company_status_reg  <- daily_read %>% 
-  mutate(on_hold = ifelse(grepl("[Hh]old" ,daily_read$`CRM Status`),"On Hold",
-                          ifelse(grepl("[Tt]rack" ,daily_read$`CRM Status`),"On Track",
-                                 ifelse(grepl("[Aa]rchive" ,daily_read$`CRM Status`),"Archive",
-                                        ifelse(grepl("Potential Host" ,daily_read$`CRM Status`),"Potential Host",
-                                               ifelse(grepl("Requested Refund" ,daily_read$`CRM Status`),"Requested Refund",NA))))))
-company_status_reg <- company_status_reg %>% 
-  mutate(on_hold=ifelse(`Registration Status`=="Registered" & 
-                          `CRM Status` %ni% c("Requested Refund","Potential Host", "Archived" ) ,
-                        "Registered" ,on_hold))
 
 ## read the province summaries 
 prov_money <- read_csv("data/processed/prov_money.csv")

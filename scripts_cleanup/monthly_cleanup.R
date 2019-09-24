@@ -8,8 +8,10 @@ library(tidyverse)
 
 ## monthly survey
 ## read in the monthly and weekly data
-monthtly <- readxl::read_xlsx("data/raw/from_mandla/surveyData_monthly.xlsx")
+##monthtly <- readxl::read_xlsx("data/raw/from_mandla/surveyData_monthly.xlsx")
 
+## read from URL provided by Xen
+monthtly <-  readr::read_csv(file.path("http://survey.yes4youth.mobi/surveydata/monthly"))
 ## remove the questions 
 monthtly_clean <- monthtly %>% select(-starts_with("question_text"))
 

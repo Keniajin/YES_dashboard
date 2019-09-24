@@ -10,8 +10,7 @@ library(flexdashboard)
 
 ## remove the exponetial notation of the data
 options(scipen = 999)
-## gnowbe ned bank
-gnowbe_nedbank <- readxl::read_xlsx("data/raw/gnowbedata/gnowbe_nedbank.xlsx")
+
 
 ## weekly data
 ## read in the baseline data
@@ -48,7 +47,8 @@ output$plot_gender_baseline <- renderPlotly({
     
   })
   
-  ## create a gender table and pie for the placed youth
+
+## create a gender table and pie for the placed youth
 gender_placed <- reactive({ 
     placed_youth_unique %>% ungroup() %>% 
       select(gender_new) %>% 
@@ -80,22 +80,28 @@ output$plot_gender_placed2 <- renderPlotly({
 
 ### ----------------age gender----------------------------
 ## 
-age_gender <- reactive({ placed_youth_unique %>% 
+age_gender <- reactive({ 
+ age_gender  <- placed_youth_unique %>% 
   group_by(gender_new, age_in_yrs) %>% 
   summarise(count=n()) %>% 
-  spread(gender_new , count)
+  mutate(perc = round((count/sum(count)) * 100,2)) %>% 
+   gather(variable, value, -(gender_new:age_in_yrs)) %>%
+   unite(temp, gender_new, variable) %>% 
+  spread(temp , value)
 })
 
 output$plot_age_gender <- renderPlotly({
-  age_gender <- age_gender()
-plot_ly(age_gender, x = ~age_in_yrs, y = ~female, type = 'bar', name = 'Females', 
-        marker = list(color = '#708fb2')) %>%
-  add_trace(y = ~male, name = 'Males', marker = list(color = '#19222b')) %>%
+age_gender <- age_gender()
+plot_ly(age_gender, x = ~age_in_yrs, y = ~female_perc, type = 'bar', name = 'Females', 
+        text = ~female_count , marker = list(color = '#708fb2')) %>%
+  add_trace(y = ~male_perc, name = 'Males', marker = list(color = '#19222b'), 
+            text = ~male_count ) %>%
   layout(xaxis = list(title = "Age in years", tickangle = -45),
-         yaxis = list(title = "Count"),
+         yaxis = list(title = "Percentage by gender total"),
          margin = list(b = 100),
          title="",
-         barmode = 'group')
+         barmode = 'group' ,
+         legend = list(x = 0.1, y = 0.9)) 
 })
 
 output$plot_age_age_mean <- renderPlotly({
@@ -130,22 +136,30 @@ reload_data <- reactive({
 ## plot eduction level and gender
 #--------------------------------
 educ_gender <- reactive({
-  baseline_placed %>% 
+  educ_gender <-  baseline_placed %>% 
   group_by(gender_new, educ_level) %>% 
   summarise(count=n()) %>% 
-  spread(gender_new , count)
+    mutate(perc = round((count/sum(count)) * 100,2)) %>% 
+    gather(variable, value, -(gender_new:educ_level)) %>%
+    unite(temp, gender_new, variable) %>% 
+    spread(temp , value)
+
+  
+
+   
 })
 
 output$plot_educ_gender <- renderPlotly({
   educ_gender <- educ_gender()
-plot_ly(educ_gender, x = ~educ_level, y = ~female, type = 'bar', name = 'Females', 
-        marker = list(color = '#708fb2')) %>%
-  add_trace(y = ~male, name = 'Males', marker = list(color = '#19222b')) %>%
-  layout(xaxis = list(title = "Age in years", tickangle = -45),
-         yaxis = list(title = "Count"),
+plot_ly(educ_gender, x = ~educ_level, y = ~female_perc, type = 'bar', name = 'Females', 
+        text = ~female_count ,marker = list(color = '#708fb2')) %>%
+  add_trace(y = ~male_perc, text = ~male_count ,name = 'Males', marker = list(color = '#19222b')) %>%
+  layout(xaxis = list(title = "Education Level", tickangle = -45),
+         yaxis = list(title = "Percentage by gender total"),
          margin = list(b = 100),
          title="",
-         barmode = 'group')
+         barmode = 'group' ,
+         legend = list(x = 0.1, y = 0.9))
 })
 
 })

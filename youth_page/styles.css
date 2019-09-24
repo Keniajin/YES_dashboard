@@ -1,0 +1,138 @@
+/*control the info box background and look
+this is for the regional page
+*/
+.info-box {
+  font-family: "Georgia", Times, "Times New Roman", serif;
+    font-weight: bold;
+    font-size: 8px;
+}
+
+.total_inject .info-box  {
+
+     background-color: #f48632!important;
+     
+}
+/*this is for comapnies section
+*/
+.companies .info-box  {
+  
+    background-color: #19222b!important;
+     
+}
+
+/*
+this is for the youth section
+*/
+.youth_commmit .info-box  {
+  
+    background-color: #708fb2!important;
+     
+}
+
+/*
+this is for the youth section
+*/
+.youth_earn .info-box  {
+  
+    background-color: #b3b9c2!important;
+     
+}
+
+
+div.map_plot {
+  height: 100%;
+  width:100%;
+  border: 1px solid black;
+  overflow: hidden;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  position: relative;
+  background-color: aqua    ;
+font-size: 150%;
+}
+
+.navbar {
+  background-color:#f48632;
+  border-color:white;
+}
+.navbar-brand {
+color:black!important;
+}
+
+/*
+gauge background */
+
+.html-widget.gauge {
+  color:red;
+  background-color: #3e4f6b;
+  font-size:medium;
+  font-weight: bold;
+  width: 100%;
+}
+
+input[type="number"] {
+  max-width: 80%;
+}
+
+div.gauge2{
+  position:fixed;
+  height:50%;
+}
+div.gauge{
+  height:100%;
+  
+}
+
+div.gauge_bg{
+   background-color: white;
+}
+
+div.outer {
+  position: fixed;
+  top: 41px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  padding: 0;
+  height: auto;
+}
+
+/* Customize fonts */
+body, label, input, button, select { 
+  font-family: 'Helvetica Neue', Helvetica;
+  font-weight: 200;
+}
+h1, h2, h3, h4 { font-weight: 400; }
+
+#controls {
+  /* Appearance */
+  background-color: white;
+  padding: 0 20px 20px 20px;
+  cursor: move;
+  /* Fade out while not hovering */
+  opacity: 0.65;
+  zoom: 0.9;
+  transition: opacity 500ms 1s;
+}
+#controls:hover {
+  /* Fade in while hovering */
+  opacity: 0.95;
+  transition-delay: 0;
+}
+
+/* Position and style citation */
+#cite {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  font-size: 12px;
+}
+
+/* If not using map tiles, show a white background */
+.leaflet-container {
+  background-color: white !important;
+}
+
+

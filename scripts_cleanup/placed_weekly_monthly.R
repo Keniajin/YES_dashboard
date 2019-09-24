@@ -38,7 +38,7 @@ gnowbe_ownership  <- placed_youth %>%
 ##weekly and placed youth merge
 ## gemerate a numeric youth ID
 placed_youth <- placed_youth %>%
-  mutate(youth_id_num=as.numeric(`Youth IDNumber`)) %>% 
+  mutate(youth_id_num=`Youth IDNumber`) %>% 
   filter(!is.na(youth_id_num))
 
 ## 720 merges

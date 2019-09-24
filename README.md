@@ -25,3 +25,11 @@ The app is ran from the `yes_dashboard.RMD` file which calls the folder for each
 
 ## Access Rights
 The Youth Employment Service will issue access rights to corporates on the **Company Overview** dashboard with controlled high level data visualisation. Data shown on the **Company Overview** dashboard will reflect indicators of the youth progress on the work readiness experience such as number of Modules completed at a given point in time, number of surveys done as well as supervisor sentiments about the youth. Companies will only view the youth summaries related to the youths placed at the company. There shall be a single login per company to be assigned to a company nominee.
+
+## Run this to update data 
+
+source("scripts/baseline_cleanup.R")
+source("scripts/demographics.R")
+source("scripts/weekly_cleanup.R")
+source("scripts/monthly_cleanup.R")
+source("scripts/placed_weekly_monthly.R")
