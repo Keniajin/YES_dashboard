@@ -15,19 +15,98 @@ options(scipen = 999)
 ## weekly data
 ## read in the baseline data
 ## the data is cleaned with the cleaning script
-baseline <- readr::read_csv("data/processed/baseline_cleaned.csv")
+baseline <- readr::read_csv("data/processed/baseline_cleaned.csv") %>% 
+  as_factor()
 baseline_placed <- readr::read_csv("data/processed/placed_merged_baseline.csv") 
 ## monthly survey
 ## read in the monthly and weekly data
-monthtly <- readxl::read_xlsx("data/raw/from_mandla/surveyData_monthly.xlsx")
-weekly <- readxl::read_xlsx("data/raw/from_mandla/surveyData_weekly.xlsx")
+monthly <- readr::read_csv("data/processed/monthtly_clean.csv")
+weekly <- readr::read_csv("data/processed/weekly_cleaned.csv")
 
 ## read in the placed youth data
-placed_youth_unique <- read_csv("data/processed/placed_youth_unique.csv",guess_max = 1000)
+placed_youth_unique <- read_csv("data/processed/placed_youth_unique.csv",guess_max = 1000) %>% 
+  mutate(youth_id_num=`Youth IDNumber`) 
+## baseline merge
+
+placed_baseline <- baseline %>% 
+  inner_join( placed_youth_unique,by=c("user_id"='youth_id_num'))
+
+## merge weekly 
+placed_weekly <- weekly %>% 
+  inner_join( placed_youth_unique,by=c("user_id"='youth_id_num'))
+
+## merge monthtly 
+placed_monthly <- monthly %>% 
+  inner_join( placed_youth_unique,by=c("user_id"='youth_id_num'))
 
 shinyServer(function(input, output, session) {
+
+  ##---------------------------------------------------------
+  ##Baseline Questionaires
+  ##---------------------------------------------------------
+  output$tot_baseline <-renderInfoBox({
+    total_baseline <- nrow(placed_baseline)
+    baseline_youths <- placed_baseline %>%
+      summarise(N=n_distinct(user_id))%>% unlist()
+    
+    infoBox( "Baseline Surveys Done",
+             value = tags$p(style = "font-size: 22px; color: red",  paste0(total_baseline )), 
+             subtitle = paste0("by ", baseline_youths ," youths") ,
+             icon = icon("thumbs-up", lib = "glyphicon"),
+             width = 4,fill = TRUE)
+  })  
   
-  ## create a gender age table
+##---------------------------------------------------------
+##Weekly Questionaires
+##---------------------------------------------------------
+output$tot_weekly <-renderInfoBox({
+    total_weekly <- nrow(placed_weekly)
+    weekly_youths <- placed_weekly %>%
+      summarise(N=n_distinct(user_id)) %>% unlist()
+    
+    infoBox("Weekly Surveys Done ", 
+            value = tags$p(style = "font-size: 15px;",  paste0(total_weekly )),
+            subtitle = paste0("by ", weekly_youths," youths") ,
+            icon = icon("thumbs-up", lib = "glyphicon"),
+            width = 4,fill = TRUE)
+})  
+
+##---------------------------------------------------------
+##Monthly Questionaires
+##---------------------------------------------------------
+output$tot_monthly <-renderInfoBox({
+  total_monthly <- nrow(placed_monthly)
+ monthly_youths <- placed_monthly %>%
+    summarise(N=n_distinct(user_id)) %>% unlist()
+  
+  infoBox( "Monthly Surveys Done",
+           value = tags$p(style = "font-size: 15px;",  paste0(total_monthly )), 
+          subtitle = paste0("by ", monthly_youths ," youths") ,
+          icon = icon("thumbs-up", lib = "glyphicon"),
+          width = 4,fill = TRUE)
+})  
+
+##---------------------------------------------------------
+##Phones delivered
+##---------------------------------------------------------
+phone_ownership <- reactive({
+  phone_ownership  <- placed_youth_unique %>% 
+    group_by(phone_deliver) %>% 
+    summarise(n_own_phone=n())
+})
+
+output$phones_delivered <-renderPlotly({
+  phone_ownership <- phone_ownership()
+  plot_ly(data=phone_ownership, labels = ~`phone_deliver`, values = ~n_own_phone ,
+          textinfo = 'label+percent+value') %>%
+    add_pie(hole = 0.5) %>%
+    layout(title = "",  showlegend = F,
+           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T),
+           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T))
+})  
+
+
+## create a gender age table
 gender_baseline <- reactive({
     gender_baseline <- baseline %>% 
       select(`question_demo_1`) %>% 
@@ -61,7 +140,7 @@ output$plot_gender_placed <- renderPlotly({
     plot_ly(data=gender_placed, labels = ~`gender_new`, values = ~gender ,
           textinfo = 'label+percent+value') %>%
     add_pie(hole = 0.6) %>%
-    layout(title = "Gender distribution of placed youth",  showlegend = F,
+    layout(title = "",  showlegend = F,
            xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T),
            yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = T))
 
@@ -101,7 +180,7 @@ plot_ly(age_gender, x = ~age_in_yrs, y = ~female_perc, type = 'bar', name = 'Fem
          margin = list(b = 100),
          title="",
          barmode = 'group' ,
-         legend = list(x = 0.1, y = 0.9)) 
+         legend = list(x = 0.05, y = 0.9)) 
 })
 
 output$plot_age_age_mean <- renderPlotly({
@@ -151,6 +230,8 @@ educ_gender <- reactive({
 
 output$plot_educ_gender <- renderPlotly({
   educ_gender <- educ_gender()
+  educ_gender$educ_level <- factor(educ_gender$educ_level, 
+                                   levels = c("Some high school", "Matric","Technical", "Honors", "Others"))
 plot_ly(educ_gender, x = ~educ_level, y = ~female_perc, type = 'bar', name = 'Females', 
         text = ~female_count ,marker = list(color = '#708fb2')) %>%
   add_trace(y = ~male_perc, text = ~male_count ,name = 'Males', marker = list(color = '#19222b')) %>%
@@ -159,7 +240,7 @@ plot_ly(educ_gender, x = ~educ_level, y = ~female_perc, type = 'bar', name = 'Fe
          margin = list(b = 100),
          title="",
          barmode = 'group' ,
-         legend = list(x = 0.1, y = 0.9))
+         legend = list(x = 0.05, y = 0.9))
 })
 
 })

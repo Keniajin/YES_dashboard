@@ -10,33 +10,33 @@ shinyUI(
     dashboardSidebar(disable = T),
     dashboardBody(
           fluidRow(
-                  ## output the money in
+              
                   column(3, 
-                       div(
-                         "Gender distribution baseline",
-                         plotlyOutput("plot_gender_baseline")
-                       ) ,
-                       p(
-                         class = "text-muted",
-                         paste("Note: not all youths filled up baseline." )
-                       )) ,#,
+                       div(class="youth_page",
+                         "Surveys",
+                         uiOutput("tot_baseline") ,
+                         uiOutput("tot_weekly"),
+                         uiOutput("tot_monthly")
+                       ) ) ,#,
                   ##youth commitment
                   column(3, 
-                         div(
+                         div(class="youth_page",
                            "Gender distribution of placed youth",
                            plotlyOutput("plot_gender_placed")
                          )
                          ),
                   ##
                   column(3,
-                         div(
+                         div(class="youth_page",
                            "Mean age by gender",
                            plotlyOutput("plot_age_age_mean")
                          )
                          ),
-                  column(3,uiOutput(class="youth_earn" ,"less_earn"),
-                         gaugeOutput("earn_gauge" ,
-                                     width = "100%", height = "auto"))
+                  column(3,
+                         div(class="youth_page",
+                             "Phone Deliverly Status",
+                             plotlyOutput("phones_delivered")
+                         ))
                   # uiOutput("total_placed_2"),
                   # column(3,gaugeOutput("n_placed_gauge" ,
                   #                      width = "100%", height = "auto")) ,
@@ -52,7 +52,7 @@ shinyUI(
                 fluidRow(
                   box("Gender vs age in years", #width = 8, status = "info", solidHeader = TRUE,
                     
-                    div(
+                    div(class="youth_page",
                       plotlyOutput("plot_age_gender"),
                       width = NULL, status = "warning",
                       selectInput("interval", "Refresh interval",
