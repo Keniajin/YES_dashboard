@@ -100,3 +100,40 @@ plot_ly(educ_gender, x = ~educ_level, y = ~female, type = 'bar', name = 'Females
          title="Education level",
          barmode = 'group')
 
+
+
+## weekly surveyrs
+
+plot_ly(overall_weeks, x = ~year_month_week , y = ~weekly_surveys, type = 'bar', name = 'Weekly Surveys', 
+        marker = list(color = '#708fb2')) %>%
+  layout(xaxis = list(title = "Months", tickangle = -45),
+         yaxis = list(title = "Weekly Surveys Done"),
+         margin = list(b = 100),
+         title="",
+         barmode = 'group')
+
+barrows <- overall_weeks_company  %>% 
+  filter(`Company Name`=="Nedbank Limited")
+
+a <- list(
+  autotick = FALSE,
+  ticks = "outside",
+  tick0 = 0,
+  dtick = 1,
+  ticklen = 5,
+  tickwidth = 2,
+  tickcolor = toRGB("blue")
+)
+t <- list(
+  family = "sans serif",
+  size = 5,
+  color = toRGB("red"))
+plot_ly(barrows, x = ~yr_week , y = ~weekly_surveys, type = 'bar', 
+        name = 'Weekly Surveys', text=~paste0(weekly_surveys , " by ", total_youths," youths"), 
+        marker = list(color = '#708fb2')) %>%
+  #add_text(textfont = t, textposition = "top right") %>%
+  layout(xaxis = list(title = "Week of the year", tickangle = -45),
+         yaxis = list(title = "Weekly Surveys Done"),
+         margin = list(b = 100),
+         title="",
+         barmode = 'group')
