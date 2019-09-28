@@ -10,7 +10,12 @@ library(readxl)
 library(lubridate)
 
 ## placed youth by company data
-placed_youth <- readxl::read_xlsx("data/raw/Placed Youth by Company_02_09_2019.xlsx")
+## read from URL provided by Xen
+#placed_youth <- readxl::read_xlsx("data/raw/Placed Youth by Company_02_09_2019.xlsx")
+
+placed_youth <-  readr::read_csv(file.path("https://data.yes4youth.co.za/monthlySurveyResponsesDetail?csv=1"))
+
+
 placed_youth <- placed_youth %>% 
   mutate(province_new= tolower(Province)) %>% 
   mutate(province_id=ifelse(province_new=="eastern cape", 1,
@@ -108,8 +113,8 @@ write_csv('data/processed/checks/over_age_youths.csv')
 ## phone ownership
 ## placed youth with phones and also own gnowbe ID
 placed_youth_unique <- placed_youth_unique %>% 
-  mutate(own_phone=ifelse(!is.na(`IMEI No`) & !is.na(`Phone Make and Model`), "YES","NO"))  %>% 
-  mutate(own_gnowbe=ifelse(!is.na(`IMEI No`) & !is.na(`Phone Make and Model`) & !is.na(GnowbeID), "YES","NO")) 
+  mutate(own_phone_IMEI=ifelse(!is.na(`IMEI No`) & !is.na(`Phone Make and Model`), "YES","NO") )  %>% 
+  mutate(own_gnowbe_IMEI=ifelse(!is.na(`IMEI No`) & !is.na(`Phone Make and Model`) & !is.na(GnowbeID), "YES","NO")) 
 
 ## save the cleaned file with unique youths 
 write_csv(placed_youth_unique , "data/processed/placed_youth_unique.csv")

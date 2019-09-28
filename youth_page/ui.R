@@ -7,8 +7,16 @@ shinyUI(
   dashboardPage(#theme = shinytheme("sandstone") ,
     dashboardHeader(title = "youth Dashboard"), #dashboardHeader(title = "Menu Select")
     
-    dashboardSidebar(disable = T),
+    dashboardSidebar(width="15%",
+                     column(12,
+                            sidebarMenu(
+                              menuItem("Youth Demographics", tabName = "demographics"),
+                              menuItem("Engagements", tabName = "engagements")
+                            )
+                     )),
     dashboardBody(
+      tabItems(
+        tabItem("demographics",
           fluidRow(
               
                   column(3, 
@@ -83,7 +91,9 @@ shinyUI(
                         ),
                         
                         "Education grouped by gender",
-                        plotlyOutput("plot_educ_gender")),
+                        
+                        plotlyOutput("plot_educ_gender")
+                        ),
                     p(class = "text-muted",
                       br(),
                       "Fewer entries in the baseline data."
@@ -91,6 +101,35 @@ shinyUI(
                   )
                 )
        
-      )
-    )
-  )
+      ),##end demographic tabitem
+    tabItem("engagements",
+            
+            fluidRow(
+              ## Weekly surveys summary
+              column(6,
+                     div(#class="youth_page",
+                         "Weekly Surveys",
+                         ## define a drop down for the different companies
+                         ## can we split per region ? Confirm with George K
+                         uiOutput('select_co') ,
+                         tags$br(),
+                         tags$br(),
+                         plotlyOutput("weekly_survey_co")
+                     )) ,
+              column(6,
+                     div(#class="youth_page",
+                       "Monthly Surveys",
+                       ## define a drop down for the different companies
+                       ## can we split per region ? Confirm with George K
+                       uiOutput('select_co_month') ,
+                       tags$br(),
+                       tags$br(),
+                       plotlyOutput("monthly_survey_co")
+                     )
+                   
+              )
+            )
+    )## end engagements tab item
+  )# end tab items
+  )## end dashboard boday
+)) #end shiny UI and dashboard page

@@ -55,7 +55,6 @@ placed_weekly <- placed_weekly %>%
          month=month(submitted ,label = T, abbr = T) ,
          yr_week=paste0("(",month,")","wk",isoweek(submitted),"/",year(submitted)))
 
-##monthly and placed youth merge
 overall_weeks <- placed_weekly %>% 
   group_by(year_month_week) %>% 
   summarise(weekly_surveys=n())
@@ -66,15 +65,46 @@ overall_weeks  <- overall_weeks %>%
 overall_weeks_company <- placed_weekly %>% 
   group_by(yr_week , `Company Name`) %>% 
   summarise(weekly_surveys=n() ,
-            total_youths= n_distinct(user_id))
+            total_youths= n_distinct(user_id)) %>% 
+  group_by(`Company Name`) %>% 
+  mutate(sum_surveys=sum(weekly_surveys)) %>% 
+  ## rename to allow reusability of functions
+  rename(time_survey=yr_week, total_surveys=weekly_surveys)
 
+
+##monthly and placed youth merge
 
 ## 327 merges
 placed_monthly <- monthly %>% 
-  inner_join( placed_youth_unique,by=c("user_id"='youth_id_num'))
+  inner_join( placed_youth_unique,by=c("user_id"='youth_id_num')) 
 
 placed_monthly %>%
   summarise(N=n_distinct(user_id))
+
+
+placed_monthly <- placed_monthly %>% 
+  mutate(submitted=as_date(submitted)) %>% 
+  mutate(year_month=format(submitted ,"%b%Y") ,
+         month=month(submitted ,label = T, abbr = T) ,
+         yr_week=paste0("(",month,")","wk",isoweek(submitted),"/",year(submitted)))
+
+overall_months <- placed_monthly %>% 
+  group_by(year_month) %>% 
+  summarise(monthly_surveys=n())  %>% 
+  mutate(year_month=as.factor(zoo::as.yearmon(year_month , "%b%Y")))
+
+
+
+overall_month_company <- placed_monthly %>% 
+  group_by(year_month , `Company Name`) %>% 
+  summarise(monthly_surveys=n() ,
+            total_youths= n_distinct(user_id)) %>% 
+  group_by(`Company Name`) %>% 
+  mutate(sum_surveys=sum(monthly_surveys)) %>% 
+  fill(year_month , `Company Name`) %>% 
+  ## rename to allow reusability of functions
+  rename(time_survey=year_month, total_surveys=monthly_surveys) %>% 
+  mutate(time_survey=as.factor(zoo::as.yearmon(time_survey , "%b%Y")))
 
 
 ## baseline merges

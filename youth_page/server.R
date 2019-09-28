@@ -3,6 +3,8 @@ library(leaflet)
 library(dplyr)
 library(tidyr)
 library(readr)
+library(lubridate)
+library(zoo)
 ## youth data
 library(readxl)
 library(plotly)
@@ -35,25 +37,85 @@ placed_baseline <- baseline %>%
 placed_weekly <- weekly %>% 
   inner_join( placed_youth_unique,by=c("user_id"='youth_id_num'))
 
+placed_weekly <- placed_weekly %>% 
+  mutate(submitted=as_date(submitted)) %>% 
+  mutate(year_month_week=format(submitted ,"%b%Y") ,
+         month=month(submitted ,label = T, abbr = T) ,
+         yr_week=paste0("(",month,")","wk",isoweek(submitted),"/",year(submitted)))
+
 ## merge monthtly 
 placed_monthly <- monthly %>% 
   inner_join( placed_youth_unique,by=c("user_id"='youth_id_num'))
+placed_monthly <- placed_monthly %>% 
+  mutate(submitted=as_date(submitted)) %>% 
+  mutate(year_month=format(submitted ,"%b%Y") ,
+         month=month(submitted ,label = T, abbr = T) ,
+         yr_week=paste0("(",month,")","wk",isoweek(submitted),"/",year(submitted)))
+
+
+## companies summaries
+##weekly and placed youth merge
+overall_weeks <- placed_weekly %>% 
+  group_by(year_month_week) %>% 
+  summarise(weekly_surveys=n())
+
+overall_weeks  <- overall_weeks %>% 
+  mutate(year_month_week=as.factor(zoo::as.yearmon(year_month_week , "%b%Y")))
+
+
+overall_weeks_company <- placed_weekly %>% 
+  group_by(yr_week , `Company Name`) %>% 
+  summarise(weekly_surveys=n() ,
+            total_youths= n_distinct(user_id)) %>% 
+  group_by(`Company Name`) %>% 
+  mutate(sum_surveys=sum(weekly_surveys)) %>% 
+  ## rename to allow reusability of functions
+  rename(time_survey=yr_week, total_surveys=weekly_surveys)
+
+
+## monthly surveys
+overall_months <- placed_monthly %>% 
+  group_by(year_month) %>% 
+  summarise(monthly_surveys=n())  %>% 
+  mutate(year_month=as.factor(zoo::as.yearmon(year_month , "%b%Y")))
+
+
+
+overall_month_company <- placed_monthly %>% 
+  group_by(year_month , `Company Name`) %>% 
+  summarise(monthly_surveys=n() ,
+            total_youths= n_distinct(user_id)) %>% 
+  group_by(`Company Name`) %>% 
+  mutate(sum_surveys=sum(monthly_surveys)) %>% 
+  ## rename to allow reusability of functions
+  rename(time_survey=year_month, total_surveys=monthly_surveys) %>% 
+  mutate(time_survey=as.factor(zoo::as.yearmon(time_survey , "%b%Y")))
+
+## plotly margins
+m <- list(
+  l = 50,
+  r = 50,
+  b = 100,
+  t = 100,
+  pad = 4
+)
 
 shinyServer(function(input, output, session) {
 
-  ##---------------------------------------------------------
+##---------------------------------------------------------
   ##Baseline Questionaires
-  ##---------------------------------------------------------
+##---------------------------------------------------------
   output$tot_baseline <-renderInfoBox({
     total_baseline <- nrow(placed_baseline)
     baseline_youths <- placed_baseline %>%
       summarise(N=n_distinct(user_id))%>% unlist()
     
-    infoBox( "Baseline Surveys Done",
-             value = tags$p(style = "font-size: 22px; color: red",  paste0(total_baseline )), 
-             subtitle = paste0("by ", baseline_youths ," youths") ,
+    infoBox( "Youths with baseline survey",
+             value = tags$p(style = "font-size: 22px; color: #f48632;",  paste0(baseline_youths)), 
+             subtitle = tags$p(style = "font-size: 10px;",paste0("with ", total_baseline ," surveys")) ,
              icon = icon("thumbs-up", lib = "glyphicon"),
-             width = 4,fill = TRUE)
+             color = "aqua",
+             width = 4,fill = F)
   })  
   
 ##---------------------------------------------------------
@@ -64,11 +126,12 @@ output$tot_weekly <-renderInfoBox({
     weekly_youths <- placed_weekly %>%
       summarise(N=n_distinct(user_id)) %>% unlist()
     
-    infoBox("Weekly Surveys Done ", 
-            value = tags$p(style = "font-size: 15px;",  paste0(total_weekly )),
-            subtitle = paste0("by ", weekly_youths," youths") ,
+    infoBox("Youths with weekly surveys ", 
+            value = tags$p(style = "font-size: 15px;  color: #708fb2;",  paste0(weekly_youths  )),
+            subtitle = tags$p(style = "font-size: 10px;",paste0("with ", total_weekly," surveys")) ,
+            color = "navy",
             icon = icon("thumbs-up", lib = "glyphicon"),
-            width = 4,fill = TRUE)
+            width = 4,fill = F)
 })  
 
 ##---------------------------------------------------------
@@ -78,12 +141,13 @@ output$tot_monthly <-renderInfoBox({
   total_monthly <- nrow(placed_monthly)
  monthly_youths <- placed_monthly %>%
     summarise(N=n_distinct(user_id)) %>% unlist()
-  
-  infoBox( "Monthly Surveys Done",
-           value = tags$p(style = "font-size: 15px;",  paste0(total_monthly )), 
-          subtitle = paste0("by ", monthly_youths ," youths") ,
+ 
+  infoBox( "Youths with monthly surveys",
+           value = tags$p(style = "font-size: 15px; color: #19222b;",  paste0( monthly_youths  )), 
+          subtitle = tags$p(style = "font-size: 10px;", paste0("with ",  total_monthly," surveys") ),
+          color = "lime",
           icon = icon("thumbs-up", lib = "glyphicon"),
-          width = 4,fill = TRUE)
+          width = 4,fill = F)
 })  
 
 ##---------------------------------------------------------
@@ -177,7 +241,7 @@ plot_ly(age_gender, x = ~age_in_yrs, y = ~female_perc, type = 'bar', name = 'Fem
             text = ~male_count ) %>%
   layout(xaxis = list(title = "Age in years", tickangle = -45),
          yaxis = list(title = "Percentage by gender total"),
-         margin = list(b = 100),
+         margin = list(m),
          title="",
          barmode = 'group' ,
          legend = list(x = 0.05, y = 0.9)) 
@@ -222,12 +286,9 @@ educ_gender <- reactive({
     gather(variable, value, -(gender_new:educ_level)) %>%
     unite(temp, gender_new, variable) %>% 
     spread(temp , value)
-
-  
-
-   
 })
 
+## education level by gender
 output$plot_educ_gender <- renderPlotly({
   educ_gender <- educ_gender()
   educ_gender$educ_level <- factor(educ_gender$educ_level, 
@@ -237,10 +298,168 @@ plot_ly(educ_gender, x = ~educ_level, y = ~female_perc, type = 'bar', name = 'Fe
   add_trace(y = ~male_perc, text = ~male_count ,name = 'Males', marker = list(color = '#19222b')) %>%
   layout(xaxis = list(title = "Education Level", tickangle = -45),
          yaxis = list(title = "Percentage by gender total"),
-         margin = list(b = 100),
+         margin = list(m),
          title="",
          barmode = 'group' ,
          legend = list(x = 0.05, y = 0.9))
 })
+
+##---------------------------------------------------------
+##Weekly and monthly surveys bar graphs
+##---------------------------------------------------------
+
+## this function is utlised for weekly and monthly surveys
+## generate the  surveys plots be called by the output 
+plot_survey_bars <- function(company_df ,company_name , survey){
+  t_youths <- max(company_df$total_youths)
+  if(survey=="Weekly"){
+    name_plot = 'Weekly Surveys'
+    xaxis_title = "Week of the year"
+    yaxis_title= "Weekly Surveys Done"
+  }else if(survey=="Monthly"){
+    name_plot = 'Monthly Surveys'
+    xaxis_title = "Month of the year"
+    yaxis_title="Monthly Surveys Done"
+  }
+  ## create the plotly
+  t <- list(
+    family = "sans serif",
+    size = 5,
+    color = toRGB("red"))
+  
+  if( max(company_df$sum_surveys,na.rm = T) >2){
+    if(nrow(company_df)>1){
+      company_df <- company_df %>% ungroup()
+      p <- plot_ly(company_df, x = ~time_survey , y = ~total_surveys, type = 'bar', 
+                   name = name_plot, text=~paste0(total_surveys , " by ", total_youths," youths"), 
+                   marker = list(color = '#708fb2')) %>%
+        #add_text(textfont = t, textposition = "top right") %>%
+        layout(xaxis = list(title = xaxis_title, tickangle = -45 ),
+               yaxis = list(title =yaxis_title # , tickformat=',d' 
+                            ),
+              margin = list(m),
+               title=paste0("Surveys for ", company_name)
+               ) %>% 
+        ## remove the download window
+        config(displayModeBar = F)
+    }else{
+      p <- ggplot(data=company_df, aes(x=time_survey, y=total_surveys)) +
+        geom_bar(aes(text=paste0(total_surveys , " by ", total_youths," youths")),
+                 colour="#1E5878", stat="identity",  fill='#1E5878') + theme_bw()
+      p <- ggplotly(p) %>% 
+        layout(xaxis = list(title = xaxis_title),
+               yaxis = list(title =yaxis_title  ,  
+                            tickformat=',d'),
+               margin = list(m),
+               title=paste0("Surveys for ", company_name))      %>% 
+        ## remove the download window
+        config(displayModeBar = F)
+    }
+
+    
+  }else if(max(company_df$sum_surveys,na.rm = T) <=2){
+    t_youths <- max(company_df$total_youths)
+    ## empty plot for adding to before data load
+    ax <- list(
+      title = "",
+      zeroline = FALSE,
+      showline = FALSE,
+      showticklabels = FALSE,
+      showgrid = FALSE
+    )
+    text = paste(company_name, "\n",
+                 "       Implementing partner\n",
+                 "       has less than 3", survey ,"surveys done by \n",
+                 t_youths , " youth(s)")
+    p <-  plot_empty <- ggplot() + 
+      annotate("text", x = 4, y = 25, size=8, label = text) + 
+      theme_bw() +
+      theme(panel.grid.major=element_blank(),
+            panel.grid.minor=element_blank())
+    p <- ggplotly(plot_empty) %>% 
+      layout(xaxis = ax, yaxis = ax)
+    
+  }
+  return(p)
+}
+
+
+## select from drop down
+output$select_co <- renderUI({
+all_companies <-as.vector(c("Overall",
+    unique(overall_weeks_company$`Company Name`)))
+
+selectInput("company_week", "Select company",
+            choices = all_companies,
+            selected = "Overall")
+})
+
+output$select_co_month <- renderUI({
+  all_companies <-as.vector(c("Overall",
+                              unique(overall_month_company$`Company Name`)))
+  
+  selectInput("company_month", "Select company",
+              choices = all_companies,
+              selected = "Overall")
+})
+
+
+## weekly graph
+company_weekly <- reactive({
+  specific_company <- overall_weeks_company %>% 
+    filter(`Company Name`==input$company_week)
+  
+  p <- plot_survey_bars(company_df = specific_company,
+                        company_name =input$company_week , survey = "Weekly" )
+  
+  
+})
+
+
+## plot the bar graph for the weekly surveys 
+output$weekly_survey_co <- renderPlotly({
+  if(input$company_week=="Overall"){
+    plot_ly(overall_weeks, x = ~year_month_week ,
+            y = ~weekly_surveys, type = 'bar', name = 'Weekly Surveys',
+            marker = list(color = '#708fb2')) %>%
+      layout(xaxis = list(title = "Months", tickangle = -45),
+             yaxis = list(title = "Weekly Surveys Done"),
+             margin = list(m),
+             title="Weekly surveys overall",
+             barmode = 'group')
+  }else{
+   company_weekly()
+  }
+})
+
+
+## monthly graph
+company_monthly <- reactive({
+  specific_company <- overall_month_company %>% 
+    filter(`Company Name`==input$company_month)
+  
+  p <- plot_survey_bars(company_df = specific_company,
+                        company_name =input$company_month ,
+                        survey = "Monthly" )
+
+})
+
+
+## plot the bar graph for the weekly surveys 
+output$monthly_survey_co <- renderPlotly({
+  if(input$company_month=="Overall"){
+    plot_ly(overall_months, x = ~year_month ,
+            y = ~monthly_surveys, type = 'bar', name = 'Monthly Surveys',
+            marker = list(color = '#708fb2')) %>%
+      layout(xaxis = list(title = "Months", tickangle = -45),
+             yaxis = list(title = "Monthly Surveys Done"),
+             margin = list(m),
+             title="Monthly surveys overall",
+             barmode = 'group')
+  }else{
+    company_monthly()
+  }
+})
+
 
 })

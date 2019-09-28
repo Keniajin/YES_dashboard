@@ -20,15 +20,19 @@ aa <- baseline %>%
 ## create the clean categories for the education variable
 baseline <- baseline %>% 
   mutate(question_demo_7=tolower(question_demo_7))  %>% 
-  mutate(educ_level=ifelse(question_demo_7=="matric", "Matric",
-                           ifelse(question_demo_7=="trade / technical / vocational training (at a tvet, fet or private college)", "Technical",
-                                  ifelse(question_demo_7=="university bachelor‚äôs degree", "Bachelors",
-                                         ifelse(question_demo_7=="some high school, no matric certificate","Some high school",
-                                                ifelse(question_demo_7=="university honours degree","Honors",
-                                                       ifelse(question_demo_7=="master‚äôs degree","Masters",
-                                                              ifelse(question_demo_7=="primary school","Primary school",
-                                                                     ifelse(question_demo_7=="no schooling completed","No School","Others")))))))))
+  mutate(educ_level=ifelse(question_demo_7=="matric", 4,
+                           ifelse(question_demo_7=="trade / technical / vocational training (at a tvet, fet or private college)", 
+                                  5,
+                                  ifelse(question_demo_7=="university bachelor’s degree", 6,
+                                         ifelse(question_demo_7=="some high school, no matric certificate",3,
+                                                ifelse(question_demo_7=="university honours degree",7,
+                                                       ifelse(question_demo_7=="master’s degree",8,
+                                                              ifelse(question_demo_7=="primary school",2,
+                                                                     ifelse(question_demo_7=="no schooling completed",1,9)))))))))
 
+baseline$educ_level <- factor(baseline$educ_level,
+                              labels = c("No School" ,"Primary school","Some high school",
+                                         "Matric","Technical","Bachelors","Honors","Masters" , "Others"))
 
 ## remove the questions 
 baseline_clean <- baseline %>% select(-starts_with("question_text"))

@@ -8,25 +8,7 @@ shinyUI(
     
     dashboardSidebar(width="20%",
                      column(12,
-      # shinyFiles::shinyDirButton("folderChoose",
-      #                            "Chose directory with the data",
-      #                            "Upload"),
-      # br(),
-      # uiOutput("dir"),
-      # br(),
-      # absolutePanel(numericInput(
-      #   "num",
-      #   h4("Input the number of mini arrays"),
-      #   value = 2
-      # ),
-      # br(),
-      # numericInput(
-      #   "num",
-      #   h4("Input the number total number of samples "),
-      #   value = 2
-      # )),
-      # 
-      sidebarMenu(
+        sidebarMenu(
         menuItem("Summaries", tabName = "dashboard"),
         menuItem("Province raw data", tabName = "rawdata")
       )
