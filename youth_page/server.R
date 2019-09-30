@@ -5,6 +5,7 @@ library(tidyr)
 library(readr)
 library(lubridate)
 library(zoo)
+library(aweek)
 ## youth data
 library(readxl)
 library(plotly)
@@ -41,37 +42,72 @@ placed_weekly <- placed_weekly %>%
   mutate(submitted=as_date(submitted)) %>% 
   mutate(year_month_week=format(submitted ,"%b%Y") ,
          month=month(submitted ,label = T, abbr = T) ,
-         yr_week=paste0("(",month,")","wk",isoweek(submitted),"/",year(submitted)))
+         yr_week=paste0("(",month,")","wk",isoweek(submitted),"/",year(submitted)),
+         yes_week = aweek::date2week(submitted,week_start = 5, floor_day = T),
+         yes_week_mnth =paste0(yes_week , "(",month,")"))
 
 ## merge monthtly 
 placed_monthly <- monthly %>% 
-  inner_join( placed_youth_unique,by=c("user_id"='youth_id_num'))
+  inner_join( placed_youth_unique,by=c("user_id"='youth_id_num')) 
+
+placed_monthly %>%
+  summarise(N=n_distinct(user_id))
+
+
 placed_monthly <- placed_monthly %>% 
   mutate(submitted=as_date(submitted)) %>% 
   mutate(year_month=format(submitted ,"%b%Y") ,
          month=month(submitted ,label = T, abbr = T) ,
-         yr_week=paste0("(",month,")","wk",isoweek(submitted),"/",year(submitted)))
-
-
+         yr_week=paste0("(",month,")","wk",isoweek(submitted),"/",year(submitted)),
+         yes_week = aweek::date2week(submitted,week_start = 5, floor_day = T))
 ## companies summaries
 ##weekly and placed youth merge
 overall_weeks <- placed_weekly %>% 
   group_by(year_month_week) %>% 
   summarise(weekly_surveys=n())
-
 overall_weeks  <- overall_weeks %>% 
   mutate(year_month_week=as.factor(zoo::as.yearmon(year_month_week , "%b%Y")))
 
 
-overall_weeks_company <- placed_weekly %>% 
-  group_by(yr_week , `Company Name`) %>% 
-  summarise(weekly_surveys=n() ,
-            total_youths= n_distinct(user_id)) %>% 
-  group_by(`Company Name`) %>% 
-  mutate(sum_surveys=sum(weekly_surveys)) %>% 
-  ## rename to allow reusability of functions
-  rename(time_survey=yr_week, total_surveys=weekly_surveys)
+month_id <- placed_weekly %>% 
+  select(month , yes_week) %>% 
+  mutate(yes_week = paste0(yes_week)) %>% 
+  distinct(yes_week , month) %>% 
+  group_by(yes_week) %>% 
+  mutate(yes_week_month=paste0(month, collapse = "" , sep="")) %>% 
+  distinct(yes_week , .keep_all = T) %>% select(-month)
 
+
+
+overall_weeks_company <- placed_weekly %>% 
+  group_by(yes_week, `Company Name`) %>% 
+  summarise(weekly_surveys=n() ,
+            total_youths= n_distinct(user_id) ) %>% 
+  group_by(`Company Name`) %>% 
+  mutate(sum_surveys=sum(weekly_surveys) , total_placed=sum(total_youths)) %>% 
+  ungroup() %>% 
+  mutate(rate_response=round((weekly_surveys /total_placed)*100,2)) %>% 
+  left_join(month_id, by="yes_week") %>% 
+  mutate(time_survey = paste0(yes_week,"(", yes_week_month,")")) %>% 
+  ## rename to allow reusability of functions
+  rename( total_surveys=weekly_surveys)
+
+## create a summary table for download for youth counter
+youth_weekly <- placed_weekly %>% 
+  select(YESID =user_id,YouthIDNumber=`Youth IDNumber`,Gender ,
+         Province, Company_Name=`Company Name`,Placement, Start_date=`Start date`, yes_week , submitted) %>% 
+  mutate(current_yes_week = aweek::date2week(Sys.Date(),week_start = 5, floor_day = T),
+         current_yes_week=as.numeric(substr(current_yes_week,7,8)), 
+         yes_start_week = aweek::date2week(Start_date,week_start = 5, floor_day = T),
+         yes_start_week=as.numeric(substr(yes_start_week,7,8)), 
+         expected_weeks=current_yes_week-yes_start_week  ,
+         expected_month=month(Sys.Date()) - month(Start_date),
+         expected_weekly_surveys=expected_weeks-expected_month) %>% 
+  select(-c(expected_month,expected_weeks)) %>% 
+  group_by(YouthIDNumber) %>%  
+  mutate(weekly_survey_done=n())%>% 
+  arrange(YouthIDNumber) %>% 
+  distinct(YouthIDNumber , .keep_all = T)
 
 ## monthly surveys
 overall_months <- placed_monthly %>% 
@@ -84,12 +120,17 @@ overall_months <- placed_monthly %>%
 overall_month_company <- placed_monthly %>% 
   group_by(year_month , `Company Name`) %>% 
   summarise(monthly_surveys=n() ,
-            total_youths= n_distinct(user_id)) %>% 
+            total_youths= n_distinct(user_id)) %>%
+  ungroup() %>% 
+  mutate(year_month=as.factor(zoo::as.yearmon(year_month , "%b%Y"))) %>% 
   group_by(`Company Name`) %>% 
-  mutate(sum_surveys=sum(monthly_surveys)) %>% 
+  mutate(sum_surveys=sum(monthly_surveys),total_placed=sum(total_youths)) %>% 
+  mutate(rate_response=round((monthly_surveys /total_placed)*100,2)) %>% 
+  #fill(year_month , `Company Name`) %>% 
   ## rename to allow reusability of functions
-  rename(time_survey=year_month, total_surveys=monthly_surveys) %>% 
-  mutate(time_survey=as.factor(zoo::as.yearmon(time_survey , "%b%Y")))
+  rename(time_survey=year_month, total_surveys=monthly_surveys) 
+
+
 
 ## plotly margins
 m <- list(
@@ -311,15 +352,15 @@ plot_ly(educ_gender, x = ~educ_level, y = ~female_perc, type = 'bar', name = 'Fe
 ## this function is utlised for weekly and monthly surveys
 ## generate the  surveys plots be called by the output 
 plot_survey_bars <- function(company_df ,company_name , survey){
-  t_youths <- max(company_df$total_youths)
+  t_youths_placed <- max(company_df$total_placed)
   if(survey=="Weekly"){
     name_plot = 'Weekly Surveys'
     xaxis_title = "Week of the year"
-    yaxis_title= "Weekly Surveys Done"
+    yaxis_title= "Rate of weekly surveys(%)"
   }else if(survey=="Monthly"){
     name_plot = 'Monthly Surveys'
     xaxis_title = "Month of the year"
-    yaxis_title="Monthly Surveys Done"
+    yaxis_title="Rate of monthly surveys (%)"
   }
   ## create the plotly
   t <- list(
@@ -330,11 +371,12 @@ plot_survey_bars <- function(company_df ,company_name , survey){
   if( max(company_df$sum_surveys,na.rm = T) >2){
     if(nrow(company_df)>1){
       company_df <- company_df %>% ungroup()
-      p <- plot_ly(company_df, x = ~time_survey , y = ~total_surveys, type = 'bar', 
-                   name = name_plot, text=~paste0(total_surveys , " by ", total_youths," youths"), 
+   
+      p <- plot_ly(company_df, x = ~time_survey , y = ~rate_response, type = 'bar', 
+                   name = name_plot, text=~paste0(total_surveys , " by ", t_youths_placed ," placed youths"), 
                    marker = list(color = '#708fb2')) %>%
         #add_text(textfont = t, textposition = "top right") %>%
-        layout(xaxis = list(title = xaxis_title, tickangle = -45 ),
+        layout(xaxis = list(title = xaxis_title, tickangle = -45 , categoryorder = "array"),
                yaxis = list(title =yaxis_title # , tickformat=',d' 
                             ),
               margin = list(m),
@@ -343,8 +385,8 @@ plot_survey_bars <- function(company_df ,company_name , survey){
         ## remove the download window
         config(displayModeBar = F)
     }else{
-      p <- ggplot(data=company_df, aes(x=time_survey, y=total_surveys)) +
-        geom_bar(aes(text=paste0(total_surveys , " by ", total_youths," youths")),
+      p <- ggplot(data=company_df, aes(x=time_survey, y=rate_response)) +
+        geom_bar(aes(text=paste0(total_surveys , " by ", t_youths_placed," placed youths")),
                  colour="#1E5878", stat="identity",  fill='#1E5878') + theme_bw()
       p <- ggplotly(p) %>% 
         layout(xaxis = list(title = xaxis_title),
@@ -358,7 +400,7 @@ plot_survey_bars <- function(company_df ,company_name , survey){
 
     
   }else if(max(company_df$sum_surveys,na.rm = T) <=2){
-    t_youths <- max(company_df$total_youths)
+    t_youths <- max(company_df$total_placed)
     ## empty plot for adding to before data load
     ax <- list(
       title = "",
@@ -370,7 +412,7 @@ plot_survey_bars <- function(company_df ,company_name , survey){
     text = paste(company_name, "\n",
                  "       Implementing partner\n",
                  "       has less than 3", survey ,"surveys done by \n",
-                 t_youths , " youth(s)")
+                 t_youths , " placed youth(s)")
     p <-  plot_empty <- ggplot() + 
       annotate("text", x = 4, y = 25, size=8, label = text) + 
       theme_bw() +
