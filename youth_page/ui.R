@@ -128,6 +128,36 @@ shinyUI(
                      )
                    
               )
+            ),
+            ## add a row for data download
+            fluidRow(
+              column(6,
+                     div(#class="youth_page",
+                       "Download data",
+                       ## define a drop down for the different companies
+                       ## can we split per region ? Confirm with George K
+                    
+                       tags$br(),
+                       tags$br(),                      
+                       downloadButton('downloadData', 'Download data', class= "mybutton"),
+
+                       DT::DTOutput("weekly_table")
+                     )) ,
+              column(6,
+                     div(
+                       "Download month data",
+                       ## define a drop down for the different companies
+                       ## can we split per region ? Confirm with George K
+                       
+                       tags$br(),
+                       tags$br(),                      
+                       downloadButton('download_monthly', 'Download data', class= "mybutton"),
+                       
+                       DT::DTOutput("monthly_table")
+                     )
+                     )
+                     
+           
             )
     )## end engagements tab item
   )# end tab items

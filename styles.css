@@ -1,3 +1,13 @@
+.mybutton{
+  background-color:white;
+  
+} 
+.skin-black .sidebar .mybutton{
+  color: red;
+  
+}
+
+
 div.youth_page {
   width: auto;
   padding: 0;

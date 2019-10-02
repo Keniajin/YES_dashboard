@@ -10,6 +10,7 @@ library(aweek)
 library(readxl)
 library(plotly)
 library(flexdashboard)
+library(DT)
 
 ## remove the exponetial notation of the data
 options(scipen = 999)
@@ -130,6 +131,19 @@ overall_month_company <- placed_monthly %>%
   ## rename to allow reusability of functions
   rename(time_survey=year_month, total_surveys=monthly_surveys) 
 
+
+youth_monthly <- placed_monthly %>% 
+  select(YESID =user_id,YouthIDNumber=`Youth IDNumber`,Gender ,
+         Province, Company_Name=`Company Name`,Placement, Start_date=`Start date`, year_month , submitted) %>% 
+  mutate(current_yes_month = month(Sys.Date() ,label = T, abbr = T) ,
+         yes_start_month = month(Start_date,label = T, abbr = T),
+         expected_month=interval(ymd(Start_date), ymd(Sys.Date()))  ,
+         expected_monthly_surveys=expected_month %/% months(1))          %>% 
+  select(-c(expected_month)) %>% 
+  group_by(YouthIDNumber) %>%  
+  mutate(monthly_survey_done=n())%>% 
+  arrange(YouthIDNumber) %>% 
+  distinct(YouthIDNumber , .keep_all = T)
 
 
 ## plotly margins
@@ -265,14 +279,16 @@ output$plot_gender_placed2 <- renderPlotly({
 ### ----------------age gender----------------------------
 ## 
 age_gender <- reactive({ 
- age_gender  <- placed_youth_unique %>% 
-  group_by(gender_new, age_in_yrs) %>% 
-  summarise(count=n()) %>% 
-  mutate(perc = round((count/sum(count)) * 100,2)) %>% 
-   gather(variable, value, -(gender_new:age_in_yrs)) %>%
-   unite(temp, gender_new, variable) %>% 
-  spread(temp , value)
+  age_gender  <- placed_youth_unique %>% 
+    filter(age_in_yrs>17 & age_in_yrs<38) %>% 
+    group_by(gender_new, age_in_yrs) %>% 
+    summarise(count=n()) %>% 
+    mutate(perc = round((count/sum(count)) * 100,2)) %>% 
+    gather(variable, value, -(gender_new:age_in_yrs)) %>%
+    unite(temp, gender_new, variable) %>% 
+    spread(temp , value)
 })
+
 
 output$plot_age_gender <- renderPlotly({
 age_gender <- age_gender()
@@ -503,5 +519,111 @@ output$monthly_survey_co <- renderPlotly({
   }
 })
 
+
+## include table for the sumamries to dowonload
+#--- weekly tables
+df_weekly_co <- reactive({
+  youth_weekly <- youth_weekly %>% 
+    filter(Company_Name==input$company_week)
+})
+
+
+# table of te first file
+output$weekly_table <-  DT::renderDT({
+
+  
+  if(input$company_week=="Overall"){
+    df <- youth_weekly %>% 
+      select(Company_Name , YouthIDNumber, Placement, weekly_survey_done, Start_date) %>% 
+      arrange(desc(weekly_survey_done)) %>% 
+      top_n(10)
+                
+            
+    df <- DT::datatable(df,  selection="multiple", escape=FALSE, 
+                        options = list(sDom  = '<"top">lrt<"bottom">ip')) #%>% 
+   # formatStyle(names(df), backgroundColor = styleInterval(brks, clrs))
+  }else{
+    df <- df_weekly_co()
+    df <- df %>% 
+      select(Company_Name , YouthIDNumber, Placement, weekly_survey_done, Start_date) %>% 
+      arrange(desc(weekly_survey_done)) %>% 
+      top_n(10)
+  
+    df <- DT::datatable(df ,  selection="multiple", escape=FALSE, 
+                        options = list(sDom  = '<"top">lrt<"bottom">ip')) #%>% 
+     #formatStyle(names(df), backgroundColor = styleInterval(brks, clrs))
+  }
+
+})
+
+## download the weekly data 
+output$download_weekly <- downloadHandler(
+  # if(input$company_week=="Overall"){
+  #   filename =function() {     paste('data-', Sys.Date(), '.csv', sep='')
+  #   },
+  #   content = function(tbl) {
+  #     write.csv(data, tbl)
+  #   }
+  # }else{
+    filename =function() {     paste('data-', Sys.Date(), '.csv', sep='')
+    },
+    content = function(file) {
+      write.csv(df_weekly_co, file)
+    }
+  #}
+  )
+
+
+## download weekly data
+df_monthly_co <- reactive({
+  youth_monthly <- youth_monthly %>% 
+    filter(Company_Name==input$company_month)
+})
+
+
+# table of te first file
+output$monthly_table <-  DT::renderDT({
+  
+  
+  if(input$company_month=="Overall"){
+    df <- youth_monthly %>% 
+      select(Company_Name , YouthIDNumber, Placement, monthly_survey_done, Start_date) %>% 
+      arrange(desc(monthly_survey_done)) %>% 
+      top_n(10)
+    
+    
+    df <- DT::datatable(df,  selection="multiple", escape=FALSE, 
+                        options = list(sDom  = '<"top">lrt<"bottom">ip')) #%>% 
+    # formatStyle(names(df), backgroundColor = styleInterval(brks, clrs))
+  }else{
+    df <- df_monthly_co()
+    df <- df %>% 
+      select(Company_Name , YouthIDNumber, Placement, monthly_survey_done, Start_date) %>% 
+      arrange(desc(monthly_survey_done)) %>% 
+      top_n(10)
+    
+    df <- DT::datatable(df ,  selection="multiple", escape=FALSE, 
+                        options = list(sDom  = '<"top">lrt<"bottom">ip')) #%>% 
+    #formatStyle(names(df), backgroundColor = styleInterval(brks, clrs))
+  }
+  
+})
+
+## download the province data 
+output$download_monthly <- downloadHandler(
+  # if(input$company_week=="Overall"){
+  #   filename =function() {     paste('data-', Sys.Date(), '.csv', sep='')
+  #   },
+  #   content = function(tbl) {
+  #     write.csv(data, tbl)
+  #   }
+  # }else{
+  filename =function() {     paste('data-', Sys.Date(), '.csv', sep='')
+  },
+  content = function(file) {
+    write.csv(df_monthly_co, file)
+  }
+  #}
+)
 
 })

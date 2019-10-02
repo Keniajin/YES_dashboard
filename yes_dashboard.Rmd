@@ -18,7 +18,7 @@ runtime: shiny
 library(shinydashboard)
 library(plotly)
 #_________________________________________________________________
-lib <- c("tidyverse","ggpubr")
+lib <- c("tidyverse","ggpubr","lubridate")
 lapply(lib, library, character.only = TRUE)
 
 ##_creating a negatiing function____###
@@ -30,7 +30,7 @@ if(Sys.getenv('SHINY_PORT') == "") options(shiny.maxRequestSize=10000*1024^2)
 ```
 
 
-Country Overview {data-width=300}
+Country Overview {data-width=8000}
 ======
 
 ```{r}
@@ -44,7 +44,7 @@ Company Overview {data-width=300}
 
 
 
-Youth dashboard {data-width=300}
+Youth dashboard {data-width=8000}
 ======
 ```{r}
 shinyAppDir("youth_page")
