@@ -1,12 +1,28 @@
 ---
 title: "YES Monitoring and Evaluation Framework"
-output:
-  flexdashboard::flex_dashboard:
-  theme: cosmo
 orientation: rows
+output:
+  flexdashboard::flex_dashboard: null
+  theme: cosmo
+resource_files:
+- prov_summary/global.R
+- prov_summary/server.R
+- prov_summary/styles.css
+- prov_summary/ui.R
+- youth_page/server.R
+- youth_page/ui.R
+- data/processed/placed_youth_unique.csv
+- data/processed/weekly_cleaned.csv
+- SA_shp/ZA_province.shx
+- SA_shp/ZA_province.qpj
+- SA_shp/ZA_province.cpg
+- SA_shp/ZA_province.prj
+- SA_shp/ZA_province_centroid.prj
+- SA_shp/ZA_province_centroid.qpj
+- SA_shp/ZA_province_centroid.shx
+runtime: shiny
 logo: images/logo_tiny.png
 vertical_layout: scroll
-runtime: shiny
 ---
 
 
@@ -15,11 +31,14 @@ runtime: shiny
 ```{r setup, include=FALSE}
 ## Inside the working directory create a sampleID folder to contain information of the sampleID's
 ## they should be named according to the sampleID names
+library(tidyverse)
+library(lubridate)
 library(shinydashboard)
 library(plotly)
+library(maptools)
 #_________________________________________________________________
-lib <- c("tidyverse","ggpubr","lubridate")
-lapply(lib, library, character.only = TRUE)
+#lib <- c("dplyr","ggplot2","ggpubr","" ,"tidyr" ,"" ,"")
+#lapply(lib, library, character.only = TRUE)
 
 ##_creating a negatiing function____###
 

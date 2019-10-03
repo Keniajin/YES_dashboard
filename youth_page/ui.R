@@ -11,11 +11,14 @@ shinyUI(
                      column(12,
                             sidebarMenu(
                               menuItem("Youth Demographics", tabName = "demographics"),
-                              menuItem("Engagements", tabName = "engagements")
+                              menuItem("Engagements", tabName = "engagements"),
+                              menuItem("Pyschometrics", tabName = "pyschometrics")
                             )
                      )),
     dashboardBody(
       tabItems(
+#---- 
+## demographics
         tabItem("demographics",
           fluidRow(
               
@@ -102,6 +105,8 @@ shinyUI(
                 )
        
       ),##end demographic tabitem
+#---- 
+## engagements
     tabItem("engagements",
             
             fluidRow(
@@ -159,7 +164,58 @@ shinyUI(
                      
            
             )
-    )## end engagements tab item
+    ),## end engagements tab item
+#---- 
+## engagements
+tabItem("pyschometrics",
+        
+        fluidRow(
+          ## Basline pyschometrics
+          column(6,
+                 div(#class="youth_page",
+                   "Weekly pyschometrics",
+                   
+                   plotlyOutput("weekly_psy")
+                 )) ,
+          column(6,
+                 div(
+                 #  "Monthly pyschometrics",
+                   # plotlyOutput("monthly_survey_co")
+                 )
+                 
+          )
+        )#,
+        ## add a row for data download
+        # fluidRow(
+        #   column(6,
+        #          div(#class="youth_page",
+        #            "Download data",
+        #            ## define a drop down for the different companies
+        #            ## can we split per region ? Confirm with George K
+        #            
+        #            tags$br(),
+        #            tags$br(),                      
+        #            downloadButton('downloadData', 'Download data', class= "mybutton"),
+        #            
+        #            DT::DTOutput("weekly_table")
+        #          )) ,
+        #   column(6,
+        #          div(
+        #            "Download month data",
+        #            ## define a drop down for the different companies
+        #            ## can we split per region ? Confirm with George K
+        #            
+        #            tags$br(),
+        #            tags$br(),                      
+        #            downloadButton('download_monthly', 'Download data', class= "mybutton"),
+        #            
+        #            DT::DTOutput("monthly_table")
+        #          )
+        #   )
+        #   
+        #   
+        # )
+)
   )# end tab items
   )## end dashboard boday
 )) #end shiny UI and dashboard page

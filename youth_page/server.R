@@ -155,6 +155,12 @@ m <- list(
   pad = 4
 )
 
+## psychometrics file
+baseline_psy <- readr::read_csv("data/processed/baseline_psy.csv")
+
+
+
+
 shinyServer(function(input, output, session) {
 
 ##---------------------------------------------------------
@@ -625,5 +631,29 @@ output$download_monthly <- downloadHandler(
   }
   #}
 )
+
+
+## plot the bar graph for the weekly surveys 
+output$weekly_psy <- renderPlotly({
+  ## Big five
+  big_5 <- c("sc_agree" , "sc_consc","sc_extra","sc_open" , "sc_stability")
+  
+  baseline_big_5 <- baseline_psy %>% 
+    select(big_5) %>% 
+    gather(variable,value )
+  
+  p <- ggplot(baseline_big_5, aes(value)) +
+    geom_histogram(aes(y=..density..),bins = 100 ,colour = "#00FFFF", 
+                   fill = "#00FFFF") +
+    stat_density(geom="line",color="red", position = 'identity') + 
+    facet_wrap(variable ~ .) +
+    theme_minimal()  +
+    ggtitle("Big Five")
+  
+  p <- ggplotly(p)
+  
+})
+
+
 
 })

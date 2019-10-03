@@ -2,7 +2,7 @@
 ## the packages being used in YES dashboard
 packages_install <-c("tidyverse","flexdashboard","ggpubr","leaflet",
                  "devtools","sf", "shinyjs", "rgdal","maptools", "rgeo", "readxl",
-                 "stringi", "RColorBrewer", "plotly") 
+                 "stringi", "RColorBrewer", "plotly","aweek","ggridges") 
 
 
 ## install packages from bioconductor or CRAN

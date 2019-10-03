@@ -1,0 +1,12 @@
+name: yes_dashboard
+title: yes_dashboard
+username:
+account: keniajin
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1279485
+bundleId: 2464821
+url: https://keniajin.shinyapps.io/yes_dashboard/
+when: 1570092386.96618
+asMultiple: FALSE
+asStatic: FALSE
