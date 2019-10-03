@@ -4,6 +4,9 @@ _____________________________________________________________________________
 This tool automates the M&E Framework for the Youth Employment Service. It provides a quick deep dive into key indicator variables and thus informs corporate action where necessary. The scope is data driven and taps into all data sources pulled from the Corporate Data Warehouse.
 
 
+## NB
+Update the `workplan.xlsx` file to add information on what to add to the dashboard
+
 ## Data Sources
 The data are located under `D:\rjob\Yes_SA\YES_shiny\data` . The `processed` folder contains the cleaned data and the `raw` contains the dataset from the different sources. NB: Data storage structure will change and the shiny interface will eventually read data from the data warehouse.This will be updated once we get the database connection. 
 
