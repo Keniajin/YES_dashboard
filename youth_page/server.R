@@ -157,7 +157,7 @@ m <- list(
 
 ## psychometrics file
 baseline_psy <- readr::read_csv("data/processed/baseline_psy.csv")
-
+labels <- read_excel("./docs/items_structure.xlsx", sheet ="Labels") 
 
 
 
@@ -632,28 +632,140 @@ output$download_monthly <- downloadHandler(
   #}
 )
 
+##---------------------------------------------------------
+## Physchometrics
+##---------------------------------------------------------
 
-## plot the bar graph for the weekly surveys 
-output$weekly_psy <- renderPlotly({
+##
+plot_pyschometrics <- function(plot_df ,ann_text , labels_plot)({
+  p <- ggplot(plot_df, aes(value)) +
+    geom_histogram(aes(y=..density..),bins = 100 ,colour = "#00FFFF", 
+                   fill = "#00FFFF") +
+    stat_density(geom="line",color="red", position = 'identity') + 
+    facet_wrap(variable ~ .,  labeller = labeller(variable =labels_plot )) +
+    theme_minimal()  +
+    geom_segment(aes(x=min(value, na.rm = T), xend = max(value, na.rm = T) , y=0, yend = 0), size=.8,
+                 arrow = arrow(length = unit(0.6,"cm"))) +
+    geom_text(data=ann_text,aes(x=x,y=y,label=label,size=0.1),show.legend = F)
+  
+return(p)
+})
+
+## big 5
+output$baseline_psy_big_5 <- renderPlot({ #renderPlotly
   ## Big five
   big_5 <- c("sc_agree" , "sc_consc","sc_extra","sc_open" , "sc_stability")
   
   baseline_big_5 <- baseline_psy %>% 
     select(big_5) %>% 
-    gather(variable,value )
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
   
-  p <- ggplot(baseline_big_5, aes(value)) +
-    geom_histogram(aes(y=..density..),bins = 100 ,colour = "#00FFFF", 
-                   fill = "#00FFFF") +
-    stat_density(geom="line",color="red", position = 'identity') + 
-    facet_wrap(variable ~ .) +
-    theme_minimal()  +
-    ggtitle("Big Five")
+  labels_plot <- unique(baseline_big_5$var_label)
+  names(labels_plot) <- big_5
   
-  p <- ggplotly(p)
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+ plot_pyschometrics(baseline_big_5 ,ann_text, labels_plot)
+ 
+  #ggplotly(p)
   
 })
 
+
+## baseline_self_efficacy
+output$self_control <- renderPlot({ #renderPlotly
+  ## baseline_self_efficacy
+ self_control <- c("sc_eff" , "sc_eff_job","sc_conflict","sc_control" , "sc_dealstress")
+  
+  baseline_self_control <- baseline_psy %>% 
+    select(self_control) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(baseline_self_control$var_label)
+  names(labels_plot) <- self_control
+  
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  plot_pyschometrics(baseline_self_control ,ann_text, labels_plot)
+  
+  #ggplotly(p)
+  
+})
+
+## baseline_self_efficacy
+output$decision <- renderPlot({ #renderPlotly
+  ## baseline_self_efficacy
+  decision <- c("sc_decision" , "sc_detail","sc_esteem","sc_grit" )
+  
+  baseline_decision <- baseline_psy %>% 
+    select(decision) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(baseline_decision$var_label)
+  names(labels_plot) <- decision
+  
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  plot_pyschometrics(baseline_decision ,ann_text, labels_plot)
+  
+  #ggplotly(p)
+  
+})
+
+## internal control
+output$internal_control <- renderPlot({ #renderPlotly
+  ## baseline_self_efficacy
+  internal_control <- c("sc_locus" , "sc_percstress","sc_time","sc_well" )
+  
+  baseline_internal_control <- baseline_psy %>% 
+    select(internal_control) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(baseline_internal_control$var_label)
+  names(labels_plot) <- internal_control
+  
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  plot_pyschometrics(baseline_internal_control ,ann_text, labels_plot)
+  
+
+  
+})
+
+## internal control
+output$attdwork <- renderPlot({ #renderPlotly
+  ## baseline_self_efficacy
+  attdwork <- c("sc_attdwork" , "sc_weip","sc_mmcs_context","sc_mmcs_effort" )
+  
+  baseline_attdwork <- baseline_psy %>% 
+    select(attdwork) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(baseline_attdwork$var_label)
+  names(labels_plot) <- attdwork
+  
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  plot_pyschometrics(baseline_attdwork ,ann_text, labels_plot)
+  
+  
+  
+})
 
 
 })

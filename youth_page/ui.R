@@ -173,18 +173,50 @@ tabItem("pyschometrics",
           ## Basline pyschometrics
           column(6,
                  div(#class="youth_page",
-                   "Weekly pyschometrics",
-                   
-                   plotlyOutput("weekly_psy")
+                   "Baseline Big Five:",
+                   #plotlyOutput("baseline_psy_big_5")
+                   plotOutput("baseline_psy_big_5")
                  )) ,
           column(6,
+                 "Self-efficacy, Dealing with conflict , Self-Control and Dealing with stress",
                  div(
-                 #  "Monthly pyschometrics",
-                   # plotlyOutput("monthly_survey_co")
+                   plotOutput("self_control")
                  )
                  
           )
-        )#,
+        ),
+        fluidRow(
+          ## Basline pyschometrics
+          column(6,
+                 div(#class="youth_page",
+                   "Decision-Making, Attention to Detail, Self-esteem and Grit",
+                   #plotlyOutput("baseline_psy_big_5")
+                   plotOutput("decision")
+                 )) ,
+          column(6,
+                 "Internal Locus of Control, Perceived Stress Scale , Present day bias and Well-being (SPANE)",
+                 div(
+                   plotOutput("internal_control")
+                 )
+                 
+          )
+        ), 
+        fluidRow(
+          ## Basline pyschometrics
+          column(6,
+                 div(#class="youth_page",
+                   "Attitudes towards work, Workgroup Emo Int Profile, MMCS",
+                   #plotlyOutput("baseline_psy_big_5")
+                   plotOutput("attdwork")
+                 )) ,
+          column(6,
+                 #"Internal Locus of Control, Perceived Stress Scale , Present day bias and Well-being (SPANE)",
+                 div(
+                   #plotOutput("internal_control")
+                 )
+                 
+          )
+        )
         ## add a row for data download
         # fluidRow(
         #   column(6,
