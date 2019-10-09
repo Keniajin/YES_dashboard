@@ -3,6 +3,15 @@ library(flexdashboard)
 library(plotly)
 library(shinydashboard)
 #library(billboarder)
+convertMenuItem <- function(mi,tabName) {
+  mi$children[[1]]$attribs['data-toggle']="tab"
+  mi$children[[1]]$attribs['data-value'] = tabName
+  if(length(mi$attribs$class)>0 && mi$attribs$class=="treeview"){
+    mi$attribs$class=NULL
+  }
+  mi
+}
+
 shinyUI(
   dashboardPage(#theme = shinytheme("sandstone") ,
     dashboardHeader(title = "youth Dashboard"), #dashboardHeader(title = "Menu Select")
@@ -12,8 +21,15 @@ shinyUI(
                             sidebarMenu(
                               menuItem("Youth Demographics", tabName = "demographics"),
                               menuItem("Engagements", tabName = "engagements"),
-                              menuItem("Pyschometrics", tabName = "pyschometrics")
-                            )
+                             # menuItem("Pyschometrics", tabName = "pyschometrics"),
+                              convertMenuItem(
+                                menuItem("Pyschometrics", 
+                                         tabName = "pyschometrics",icon = icon("bar-chart-o"),
+                                                      menuSubItem("Baseline", tabName = "baseline"),selected=T,
+                                                       menuSubItem("Monthly", tabName = "monthly"),
+                                                       menuSubItem("Weekly", tabName = "weekly")),
+                                "pyschometrics")
+                            )# close side bar menu
                      )),
     dashboardBody(
       tabItems(
@@ -167,9 +183,9 @@ shinyUI(
     ),## end engagements tab item
 #---- 
 ## engagements
-tabItem("pyschometrics",
-        
-        fluidRow(
+#---- 
+tabItem("baseline",
+      fluidRow(
           ## Basline pyschometrics
           column(6,
                  div(#class="youth_page",
@@ -217,37 +233,57 @@ tabItem("pyschometrics",
                  
           )
         )
-        ## add a row for data download
-        # fluidRow(
-        #   column(6,
-        #          div(#class="youth_page",
-        #            "Download data",
-        #            ## define a drop down for the different companies
-        #            ## can we split per region ? Confirm with George K
-        #            
-        #            tags$br(),
-        #            tags$br(),                      
-        #            downloadButton('downloadData', 'Download data', class= "mybutton"),
-        #            
-        #            DT::DTOutput("weekly_table")
-        #          )) ,
-        #   column(6,
-        #          div(
-        #            "Download month data",
-        #            ## define a drop down for the different companies
-        #            ## can we split per region ? Confirm with George K
-        #            
-        #            tags$br(),
-        #            tags$br(),                      
-        #            downloadButton('download_monthly', 'Download data', class= "mybutton"),
-        #            
-        #            DT::DTOutput("monthly_table")
-        #          )
-        #   )
-        #   
-        #   
-        # )
-)
-  )# end tab items
-  )## end dashboard boday
+  ),## end baseline tab item
+#---- 
+tabItem("monthly","Monthly Psychometrics",
+        fluidRow(
+          ## Weekly pyschometrics
+          column(6,
+                 "Dealing with conflict, Dealing with stress, Well-being (SPANE) and Perceived Stress Scale",
+                 div(
+                   plotOutput("conflict_month")
+                 )
+                 
+          ),
+          column(6,
+                 "Belonging , Workplace , Problem solving and Behaviors",
+                 div(
+                   plotOutput("belong_month")
+                 )
+                 
+          )
+        ),## end fluid row 1
+        fluidRow(
+          ## Weekly pyschometrics
+          column(6,
+                 "Self-efficacy, Motivation, Team Work and Satisfaction ",
+                 div(
+                   plotOutput("efficacy_month")
+                 )
+                 
+          ),
+          column(6#,
+                # "Belonging , Workplace , Problem solving and Behaviors",
+                # div(
+                 #  plotOutput("belong_month")
+               #  )
+                 
+          )
+        )
+        ),##end monthly
+tabItem("weekly","Weekly Pshychometrics",
+        fluidRow(
+          ## Weekly pyschometrics
+            column(12,
+                 "Check In, Behaviors and Satisfaction",
+                 div(
+                   plotOutput("psycho_week")
+                 )
+                 
+          )
+        )
+        
+        )## end weekly
+)# end tab items
+)## end dashboard boday
 )) #end shiny UI and dashboard page

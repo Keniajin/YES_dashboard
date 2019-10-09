@@ -157,12 +157,16 @@ m <- list(
 
 ## psychometrics file
 baseline_psy <- readr::read_csv("data/processed/baseline_psy.csv")
+weekly_psy <- readr::read_csv("data/processed/weekly_psy.csv")
+monthly_psy <- readr::read_csv("data/processed/monthly_psy.csv")
+
 labels <- read_excel("./docs/items_structure.xlsx", sheet ="Labels") 
 
 
 
 shinyServer(function(input, output, session) {
 
+  
 ##---------------------------------------------------------
   ##Baseline Questionaires
 ##---------------------------------------------------------
@@ -651,6 +655,10 @@ plot_pyschometrics <- function(plot_df ,ann_text , labels_plot)({
 return(p)
 })
 
+
+## Baseline
+##---------------------------------------------------------
+
 ## big 5
 output$baseline_psy_big_5 <- renderPlot({ #renderPlotly
   ## Big five
@@ -762,6 +770,106 @@ output$attdwork <- renderPlot({ #renderPlotly
   ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
   
   plot_pyschometrics(baseline_attdwork ,ann_text, labels_plot)
+  
+  
+  
+})
+
+
+## Monthlty
+##---------------------------------------------------------
+## conflict month
+output$conflict_month <- renderPlot({ #renderPlotly
+
+  conflict_month <- c("sc_conflict" , "sc_dealstress" , "sc_well" , "sc_percstress")
+  
+  
+  monthly_conflict <- monthly_psy %>% 
+    select(conflict_month) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(monthly_conflict$var_label)
+  names(labels_plot) <- conflict_month
+  
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  plot_pyschometrics(monthly_conflict ,ann_text, labels_plot)
+  
+  
+  
+})
+
+
+## belong_month month
+output$belong_month <- renderPlot({ #renderPlotly
+ 
+  belong_month <- c("sc_belong", "sc_workplace", "sc_problem" , "sc_behave")
+  
+  
+  monthly_belong <- monthly_psy %>% 
+    select(belong_month) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(monthly_belong$var_label)
+  names(labels_plot) <- belong_month
+  
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  plot_pyschometrics(monthly_belong ,ann_text, labels_plot)
+  
+  
+  
+})
+
+
+## efficacy  month
+output$efficacy_month <- renderPlot({ #renderPlotly
+  
+  efficacy_month <- c("sc_belong", "sc_workplace", "sc_problem" , "sc_behave")
+  monthly_efficacy <- monthly_psy %>% 
+    select(efficacy_month) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(monthly_efficacy$var_label)
+  names(labels_plot) <- efficacy_month
+    ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  plot_pyschometrics(monthly_efficacy ,ann_text, labels_plot)
+  
+  
+  
+})
+
+
+## Weekly
+##---------------------------------------------------------
+## weekly pshyco
+output$psycho_week <- renderPlot({ #renderPlotly
+  
+  weekly_vars <- c("sc_check_in" , "sc_behave" , "sc_satis" )
+  
+  
+  weekly_metrics <- weekly_psy %>% 
+    select(weekly_vars) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(weekly_metrics$var_label)
+  names(labels_plot) <- weekly_vars
+  
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  plot_pyschometrics(weekly_metrics ,ann_text, labels_plot)
   
   
   
