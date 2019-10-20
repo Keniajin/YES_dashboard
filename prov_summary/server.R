@@ -62,6 +62,37 @@ sa_shp@data <- sa_shp@data %>%
               mutate(province_id=as.character(province_id))  ,  
             by=c("ID_1"="province_id"))
 
+icon <- function (name, class = NULL, lib = "font-awesome"){
+  if(lib=="local"){
+    if(is.null(name$src))
+      stop("If lib='local', 'name' must be a named list with a 'src' element
+           and optionally 'width' (defaults to 100%).")
+    if(is.null(name$width)) name$width <- "100%"
+    return(tags$img(class="img img-local", src=name$src, width=name$width))
+  }
+  
+  prefixes <- list(`font-awesome` = "fa", glyphicon = "glyphicon")
+  prefix <- prefixes[[lib]]
+  if (is.null(prefix)) {
+    stop("Unknown font library '", lib, "' specified. Must be one of ", 
+         paste0("\"", names(prefixes), "\"", collapse = ", "))
+  }
+  iconClass <- ""
+  if (!is.null(name)) 
+    iconClass <- paste0(prefix, " ", prefix, "-", name)
+  if (!is.null(class)) 
+    iconClass <- paste(iconClass, class)
+  iconTag <- tags$i(class = iconClass)
+  if (lib == "font-awesome") {
+    htmltools::htmlDependencies(iconTag) <- 
+      htmltools::htmlDependency("font-awesome", 
+                                "4.6.3", c(href = "shared/font-awesome"),
+                                stylesheet = "css/font-awesome.min.css")
+  }
+  iconTag
+}
+
+
 shinyServer(function(input, output, session) {
 ## hiding the header for the UI
   observeEvent(input$button, {
@@ -146,10 +177,13 @@ total_companies_R <- reactive({
 ##total investment
 ##---------------------------------------------------------
 output$total_injection<-renderInfoBox({
+  x <- "stat_icon_normal_dist_white.png"
   total_injection <- total_injection_value()
   infoBox("Total Injection: ",paste0("R ",formatC(total_injection,format="d", big.mark = ",") ),
           subtitle = "in the local economies" ,
-          icon = shiny::icon("dollar"),
+          icon = shiny::icon("money-bill-wave-alt" ,  "fa-1x"),
+          ## edit icon
+          #icon=icon(list(src=x, width="80px"), lib="local"),
          width = 4,fill = TRUE)
 })
 
@@ -173,7 +207,7 @@ output$youth_commited <- renderInfoBox({
   total_companies <- formatC( total_companies_R(),format="d", big.mark = ",") 
   infoBox("Commited Jobs:", total_youth_com,
           subtitle = paste0("by ",total_companies," companies") ,
-          icon = shiny::icon("calendar"),
+          icon = shiny::icon("user-md"),
           color = "fuchsia",width = 4,fill = TRUE)
 })
 
@@ -210,7 +244,7 @@ output$total_companies <- renderInfoBox({
   total_companies <- formatC( total_companies_R(),format="d", big.mark = ",") 
   infoBox("Signed up companies: ", total_companies,
          # subtitle = paste0("by n"," companies") ,
-          icon = shiny::icon("bar-chart"),
+          icon = shiny::icon("building"),
           color = "fuchsia",width = 4,fill = TRUE)
 })
 
@@ -244,7 +278,7 @@ less_than_minimum <- 124
           HTML(paste("< minimum =",less_than_minimum ,br()),
                paste("Not declared =",not_declared ,br())),
           # subtitle = paste0("by n"," companies") ,
-          icon = shiny::icon("euro"),
+          icon = shiny::icon("money-bill",  "fa-1x"),
           color = "fuchsia",width = 4,fill = TRUE)
 })
 

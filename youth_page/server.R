@@ -11,6 +11,8 @@ library(readxl)
 library(plotly)
 library(flexdashboard)
 library(DT)
+library(viridis)
+library(ggridges)
 
 ## remove the exponetial notation of the data
 options(scipen = 999)
@@ -144,6 +146,32 @@ youth_monthly <- placed_monthly %>%
   mutate(monthly_survey_done=n())%>% 
   arrange(YouthIDNumber) %>% 
   distinct(YouthIDNumber , .keep_all = T)
+
+## youths with number of surveys
+baseline_weekly <- placed_baseline %>% 
+  distinct(user_id , .keep_all = T)  %>% 
+  select(user_id , survey_b=survey) %>% 
+  inner_join(placed_weekly %>% 
+               distinct(user_id , .keep_all = T)  %>% 
+               select(user_id , survey_w=survey))
+
+baseline_monthly <- placed_baseline %>% 
+  distinct(user_id , .keep_all = T)  %>% 
+  select(user_id , survey_b=survey) %>% 
+  inner_join(placed_monthly %>% 
+               distinct(user_id , .keep_all = T)  %>% 
+               select(user_id , survey_m=survey))
+
+
+baseline_monthly_weekly <- placed_baseline %>% 
+  distinct(user_id , .keep_all = T)  %>% 
+  select(user_id , survey_b=survey) %>% 
+  inner_join(placed_monthly %>% 
+               distinct(user_id , .keep_all = T)  %>% 
+               select(user_id , survey_m=survey)) %>% 
+  inner_join(placed_weekly %>% 
+               distinct(user_id , .keep_all = T)  %>% 
+               select(user_id , survey_w=survey))
 
 
 ## plotly margins
@@ -315,7 +343,9 @@ plot_ly(age_gender, x = ~age_in_yrs, y = ~female_perc, type = 'bar', name = 'Fem
 })
 
 output$plot_age_age_mean <- renderPlotly({
-  plot_ly(placed_youth_unique %>% filter(!is.na(gender_new)), 
+  placed_youth_v <- placed_youth_unique %>% 
+    filter(age_in_yrs>17 & age_in_yrs<38)
+  plot_ly(placed_youth_v %>% filter(!is.na(gender_new)), 
         y = ~age_in_yrs, 
         color = ~gender_new,
         split = ~gender_new , 
@@ -636,6 +666,38 @@ output$download_monthly <- downloadHandler(
   #}
 )
 
+## ---------------------------------------
+## youths with weekly monthly or baseline
+
+output$v_bw <- shinydashboard::renderValueBox({
+  N_bw <- nrow(baseline_weekly)
+  shinydashboard::valueBox(
+    "Youths with baseline and weekly ",
+    value= N_bw,
+    icon = icon("pencil")
+  )
+})
+
+
+output$v_bm <- shinydashboard::renderValueBox({
+  N_bm <- nrow(baseline_monthly)
+  shinydashboard::valueBox(
+    "Youths with baseline and monthly ",
+    value=N_bm,
+    icon = icon("pencil") 
+  )
+})
+
+output$v_bmw <- shinydashboard::renderValueBox({
+  N_bmw <- nrow(baseline_monthly_weekly)
+  shinydashboard::valueBox(
+    "Youths with baseline,weekly and monthly  ",
+    value=N_bmw,
+    icon = icon("pencil"),
+    color = ifelse(N_bmw > 10, "blue", "red")
+  )
+})
+
 ##---------------------------------------------------------
 ## Physchometrics
 ##---------------------------------------------------------
@@ -646,10 +708,11 @@ plot_pyschometrics <- function(plot_df ,ann_text , labels_plot)({
     geom_histogram(aes(y=..density..),bins = 100 ,colour = "#00FFFF", 
                    fill = "#00FFFF") +
     stat_density(geom="line",color="red", position = 'identity') + 
-    facet_wrap(variable ~ .,  labeller = labeller(variable =labels_plot )) +
+    facet_wrap(variable ~ .,  labeller = labeller(variable =labels_plot ),
+                scales = "free") +
     theme_minimal()  +
-    geom_segment(aes(x=min(value, na.rm = T), xend = max(value, na.rm = T) , y=0, yend = 0), size=.8,
-                 arrow = arrow(length = unit(0.6,"cm"))) +
+    geom_segment(aes(x=min(value, na.rm = T), xend = max(value, na.rm = T) , y=0, yend = 0), size=.3,
+                 arrow = arrow(length = unit(0.2,"cm"))) +
     geom_text(data=ann_text,aes(x=x,y=y,label=label,size=0.1),show.legend = F)
   
 return(p)
@@ -682,7 +745,32 @@ output$baseline_psy_big_5 <- renderPlot({ #renderPlotly
   
 })
 
+## big 5
+output$baseline_psy_big_5_2 <- renderPlot({
+  ## Big five
+  big_5 <- c("sc_agree" , "sc_consc","sc_extra","sc_open" , "sc_stability")
+  
+  baseline_big_5 <- baseline_psy %>% 
+    select(big_5) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(baseline_big_5$var_label)
+  names(labels_plot) <- big_5
+  
+  ggplot(baseline_big_5, aes(value , variable, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01,
+                               gradient_lwd = 1.) +
+  scale_x_continuous(expand = c(0.01, 0)) +
+  scale_y_discrete(expand = c(0.01, 0) , labels=labels_plot) +
+  scale_fill_viridis(name = "Value on X axis", option = "A" , 
+                     label=c("Strongly disagree","Disagree",
+                             "Neither agree nor disagree","Agree","Strongly agree")) +
+  theme_ridges(font_size = 13, grid = TRUE) + theme(axis.title = element_blank(),
+                                                    axis.text.x = element_blank())  
 
+})
 ## baseline_self_efficacy
 output$self_control <- renderPlot({ #renderPlotly
   ## baseline_self_efficacy
@@ -702,6 +790,37 @@ output$self_control <- renderPlot({ #renderPlotly
   
   plot_pyschometrics(baseline_self_control ,ann_text, labels_plot)
   
+  #ggplotly(p)
+  
+})
+
+## baseline_self_efficacy
+output$self_control_2 <- renderPlot({ #renderPlotly
+  ## baseline_self_efficacy
+  self_control <- c("sc_eff" , "sc_eff_job","sc_conflict","sc_control" , "sc_dealstress")
+  
+  baseline_self_control <- baseline_psy %>% 
+    select(self_control) %>% 
+    gather(variable,value ) %>% 
+    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
+    left_join(labels %>% select(-id_master))
+  
+  labels_plot <- unique(baseline_self_control$var_label)
+  names(labels_plot) <- self_control
+  
+  
+  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  
+  ggplot(baseline_self_control, aes(value , variable, fill = ..x..)) +
+    geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01,
+                                 gradient_lwd = 1.) +
+    scale_x_continuous(expand = c(0.01, 0)) +
+    scale_y_discrete(expand = c(0.01, 0) , labels=labels_plot) +
+    scale_fill_viridis(name = "Value on X axis", option = "A" , 
+                       label=c("Strongly disagree","Disagree",
+                               "Neither agree nor disagree","Agree","Strongly agree")) +
+    theme_ridges(font_size = 13, grid = TRUE) + theme(axis.title = element_blank(),
+                                                      axis.text.x = element_blank()) 
   #ggplotly(p)
   
 })

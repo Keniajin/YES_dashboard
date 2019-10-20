@@ -19,8 +19,8 @@ shinyUI(
     dashboardSidebar(width="15%",
                      column(12,
                             sidebarMenu(
-                              menuItem("Youth Demographics", tabName = "demographics"),
-                              menuItem("Engagements", tabName = "engagements"),
+                              menuItem("Youth Demographics", icon = icon("id-card-alt"), tabName = "demographics"),
+                              menuItem("Engagements", icon = icon("envelope"), tabName = "engagements"),
                              # menuItem("Pyschometrics", tabName = "pyschometrics"),
                               convertMenuItem(
                                 menuItem("Pyschometrics", 
@@ -118,7 +118,19 @@ shinyUI(
                       "Fewer entries in the baseline data."
                     )
                   )
-                )
+                ),## end fluid row
+          fluidRow(
+           column(6, 
+                   div("Surveys Merge",
+                       br(),
+                      shinydashboard::valueBoxOutput("v_bmw"),
+                        shinydashboard::valueBoxOutput("v_bm") ,
+                       shinydashboard::valueBoxOutput("v_bw")
+                       
+                   ) ),
+           column(6
+               )
+          )
        
       ),##end demographic tabitem
 #---- 
@@ -154,25 +166,28 @@ shinyUI(
             fluidRow(
               column(6,
                      div(#class="youth_page",
-                       "Download data",
+                       "Weekly downloads",
                        ## define a drop down for the different companies
                        ## can we split per region ? Confirm with George K
                     
                        tags$br(),
                        tags$br(),                      
-                       downloadButton('downloadData', 'Download data', class= "mybutton"),
-
+                       downloadButton('downloadData', 'Weekly overall', class= "mybutton"),
+                       downloadButton('', 'Top 20 youths weekly', class= "mybutton"),
+                       downloadButton('', 'Top 20 company weekly', class= "mybutton"),
                        DT::DTOutput("weekly_table")
                      )) ,
               column(6,
                      div(
-                       "Download month data",
+                       "Monthly downloads",
                        ## define a drop down for the different companies
                        ## can we split per region ? Confirm with George K
                        
                        tags$br(),
                        tags$br(),                      
-                       downloadButton('download_monthly', 'Download data', class= "mybutton"),
+                       downloadButton('download_monthly', 'Monthly Overall', class= "mybutton"),
+                       downloadButton('', 'Top 20 youths monthly', class= "mybutton"),
+                       downloadButton('', 'Top 20 company monthly', class= "mybutton"),
                        
                        DT::DTOutput("monthly_table")
                      )
@@ -193,10 +208,25 @@ tabItem("baseline",
                    #plotlyOutput("baseline_psy_big_5")
                    plotOutput("baseline_psy_big_5")
                  )) ,
+         
+        
+          column(6,
+                 div(#class="youth_page",
+                   "Baseline Big Five Ridges:",
+                   #plotlyOutput("baseline_psy_big_5")
+                   plotOutput("baseline_psy_big_5_2")
+                 )),
           column(6,
                  "Self-efficacy, Dealing with conflict , Self-Control and Dealing with stress",
                  div(
                    plotOutput("self_control")
+                 )
+                 
+          ),
+          column(6,
+                 "Self-efficacy, Dealing with conflict , Self-Control and Dealing with stress",
+                 div(
+                   plotOutput("self_control_2")
                  )
                  
           )

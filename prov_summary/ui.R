@@ -9,8 +9,8 @@ shinyUI(
     dashboardSidebar(width="20%",
                      column(12,
         sidebarMenu(
-        menuItem("Summaries", tabName = "dashboard"),
-        menuItem("Province raw data", tabName = "rawdata")
+        menuItem("Summaries", icon = icon("globe-africa"), tabName = "dashboard"),
+        menuItem("Province raw data" ,icon = icon("tally"), tabName = "rawdata")
       )
     )),
     dashboardBody(
