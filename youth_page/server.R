@@ -703,7 +703,7 @@ output$v_bmw <- shinydashboard::renderValueBox({
 ##---------------------------------------------------------
 
 ##
-plot_pyschometrics <- function(plot_df ,ann_text , labels_plot)({
+plot_pyschometrics <- function(plot_df ,ann_text , labels_plot){
   p <- ggplot(plot_df, aes(value)) +
     geom_histogram(aes(y=..density..),bins = 100 ,colour = "#00FFFF", 
                    fill = "#00FFFF") +
@@ -716,7 +716,27 @@ plot_pyschometrics <- function(plot_df ,ann_text , labels_plot)({
     geom_text(data=ann_text,aes(x=x,y=y,label=label,size=0.1),show.legend = F)
   
 return(p)
-})
+}
+
+## ridges function
+
+pyschometrics_ridges <- function(plot_df ,ann_text , labels_plot , likert_label){
+
+  
+  p <- ggplot(plot_df, aes(value , variable, fill = ..x..)) +
+    geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01,
+                                 gradient_lwd = 1.) +
+    scale_x_continuous(expand = c(0.01, 0)) +
+    scale_y_discrete(expand = c(0.01, 0) , labels=labels_plot) +
+    scale_fill_viridis(name = "Scale", option = "A" , 
+                       label=likert_label
+                       ) +
+    theme_ridges(font_size = 13, grid = TRUE) + 
+    theme(axis.title = element_blank(),
+          axis.text.x = element_blank()) 
+  
+  return(p)
+}
 
 
 ## Baseline
@@ -739,239 +759,191 @@ output$baseline_psy_big_5 <- renderPlot({ #renderPlotly
   
   ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
   
- plot_pyschometrics(baseline_big_5 ,ann_text, labels_plot)
+  likert_label <- c("Strongly disagree","Disagree",
+                    "Neither agree nor disagree","Agree","Strongly agree")
+  
+  pyschometrics_ridges(plot_df=baseline_big_5 ,ann_text=ann_text ,
+                       labels_plot=labels_plot , likert_label=likert_label )
+  
+  ## uncomment for histograms
+## plot_pyschometrics(baseline_big_5 ,ann_text, labels_plot)
  
   #ggplotly(p)
   
 })
 
-## big 5
-output$baseline_psy_big_5_2 <- renderPlot({
-  ## Big five
-  big_5 <- c("sc_agree" , "sc_consc","sc_extra","sc_open" , "sc_stability")
-  
-  baseline_big_5 <- baseline_psy %>% 
-    select(big_5) %>% 
-    gather(variable,value ) %>% 
-    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
-    left_join(labels %>% select(-id_master))
-  
-  labels_plot <- unique(baseline_big_5$var_label)
-  names(labels_plot) <- big_5
-  
-  ggplot(baseline_big_5, aes(value , variable, fill = ..x..)) +
-  geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01,
-                               gradient_lwd = 1.) +
-  scale_x_continuous(expand = c(0.01, 0)) +
-  scale_y_discrete(expand = c(0.01, 0) , labels=labels_plot) +
-  scale_fill_viridis(name = "Value on X axis", option = "A" , 
-                     label=c("Strongly disagree","Disagree",
-                             "Neither agree nor disagree","Agree","Strongly agree")) +
-  theme_ridges(font_size = 13, grid = TRUE) + theme(axis.title = element_blank(),
-                                                    axis.text.x = element_blank())  
 
-})
-## baseline_self_efficacy
-output$self_control <- renderPlot({ #renderPlotly
+
+#Group 2:Self-efficacy,Growth Mindset,Locus of control,Resilience/Gri,MMCS,Self-esteem
+output$group2_base <- renderPlot({ #renderPlotly
   ## baseline_self_efficacy
- self_control <- c("sc_eff" , "sc_eff_job","sc_conflict","sc_control" , "sc_dealstress")
+  group2_base <- c("sc_eff" ,"sc_eff_job","sc_locus" ,"sc_grit","sc_mmcs_context","sc_mmcs_effort" ,"sc_esteem")
   
-  baseline_self_control <- baseline_psy %>% 
-    select(self_control) %>% 
+  baseline_group2 <- baseline_psy %>% 
+    select(group2_base) %>% 
     gather(variable,value ) %>% 
     mutate(var_name_lab=gsub("sc_","",variable)) %>% 
     left_join(labels %>% select(-id_master))
   
-  labels_plot <- unique(baseline_self_control$var_label)
-  names(labels_plot) <- self_control
+  labels_plot <- unique(baseline_group2$var_label)
+  names(labels_plot) <- group2_base
   
   
   ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
   
-  plot_pyschometrics(baseline_self_control ,ann_text, labels_plot)
+  likert_label <- c("","Strongly disagree","Disagree",
+                    "Neither agree nor disagree","Agree","Strongly agree")
+  
+  pyschometrics_ridges(plot_df=baseline_group2 ,ann_text=ann_text ,
+                       labels_plot=labels_plot , likert_label=likert_label )
+  
+  ## un comment to display histograms
+  ##plot_pyschometrics(baseline_group2 ,ann_text, labels_plot)
+  
   
   #ggplotly(p)
   
 })
 
-## baseline_self_efficacy
-output$self_control_2 <- renderPlot({ #renderPlotly
-  ## baseline_self_efficacy
-  self_control <- c("sc_eff" , "sc_eff_job","sc_conflict","sc_control" , "sc_dealstress")
-  
-  baseline_self_control <- baseline_psy %>% 
-    select(self_control) %>% 
-    gather(variable,value ) %>% 
-    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
-    left_join(labels %>% select(-id_master))
-  
-  labels_plot <- unique(baseline_self_control$var_label)
-  names(labels_plot) <- self_control
-  
-  
-  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
-  
-  ggplot(baseline_self_control, aes(value , variable, fill = ..x..)) +
-    geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01,
-                                 gradient_lwd = 1.) +
-    scale_x_continuous(expand = c(0.01, 0)) +
-    scale_y_discrete(expand = c(0.01, 0) , labels=labels_plot) +
-    scale_fill_viridis(name = "Value on X axis", option = "A" , 
-                       label=c("Strongly disagree","Disagree",
-                               "Neither agree nor disagree","Agree","Strongly agree")) +
-    theme_ridges(font_size = 13, grid = TRUE) + theme(axis.title = element_blank(),
-                                                      axis.text.x = element_blank()) 
-  #ggplotly(p)
-  
-})
 
-## baseline_self_efficacy
-output$decision <- renderPlot({ #renderPlotly
+##Group 3
+#Present day bias (both scales),Future Orientation
+output$group3_base <- renderPlot({ #renderPlotly
   ## baseline_self_efficacy
-  decision <- c("sc_decision" , "sc_detail","sc_esteem","sc_grit" )
+  group3_base <- c("sc_time","sc_decision" , "sc_detail" ,"sc_control")
   
-  baseline_decision <- baseline_psy %>% 
-    select(decision) %>% 
+  baseline_group3 <- baseline_psy %>% 
+    select(group3_base) %>% 
     gather(variable,value ) %>% 
     mutate(var_name_lab=gsub("sc_","",variable)) %>% 
     left_join(labels %>% select(-id_master))
   
-  labels_plot <- unique(baseline_decision$var_label)
-  names(labels_plot) <- decision
+  labels_plot <- unique(baseline_group3$var_label)
+  names(labels_plot) <- group3_base
   
   
   ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  likert_label <- c("","Strongly disagree","Disagree",
+                    "Neither agree nor disagree","Agree","Strongly agree")
   
-  plot_pyschometrics(baseline_decision ,ann_text, labels_plot)
+  pyschometrics_ridges(plot_df=baseline_group3 ,ann_text=ann_text ,
+                       labels_plot=labels_plot , likert_label=likert_label )
   
-  #ggplotly(p)
-  
-})
-
-## internal control
-output$internal_control <- renderPlot({ #renderPlotly
-  ## baseline_self_efficacy
-  internal_control <- c("sc_locus" , "sc_percstress","sc_time","sc_well" )
-  
-  baseline_internal_control <- baseline_psy %>% 
-    select(internal_control) %>% 
-    gather(variable,value ) %>% 
-    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
-    left_join(labels %>% select(-id_master))
-  
-  labels_plot <- unique(baseline_internal_control$var_label)
-  names(labels_plot) <- internal_control
-  
-  
-  ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
-  
-  plot_pyschometrics(baseline_internal_control ,ann_text, labels_plot)
+  ## un comment to display histograms
+  #plot_pyschometrics(baseline_group3 ,ann_text, labels_plot)
   
 
   
 })
 
-## internal control
-output$attdwork <- renderPlot({ #renderPlotly
+## Group 4:
+#Well-being,Dealing with Stress,Perceived stress scale,Dealing with conflict,Attitudes towards work,WEIP
+output$group_4_base <- renderPlot({ #renderPlotly
   ## baseline_self_efficacy
-  attdwork <- c("sc_attdwork" , "sc_weip","sc_mmcs_context","sc_mmcs_effort" )
+  group_4_base <- c( "sc_well", "sc_dealstress", "sc_percstress",
+                     "sc_conflict","sc_attdwork" ,"sc_weip"  )
   
-  baseline_attdwork <- baseline_psy %>% 
-    select(attdwork) %>% 
+  baseline_group4 <- baseline_psy %>% 
+    select(group_4_base) %>% 
     gather(variable,value ) %>% 
     mutate(var_name_lab=gsub("sc_","",variable)) %>% 
     left_join(labels %>% select(-id_master))
   
-  labels_plot <- unique(baseline_attdwork$var_label)
-  names(labels_plot) <- attdwork
+  labels_plot <- unique(baseline_group4$var_label)
+  names(labels_plot) <- group_4_base
   
   
   ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  likert_label <- c("","Strongly disagree","Disagree",
+                    "Neither agree nor disagree","Agree","Strongly agree")
   
-  plot_pyschometrics(baseline_attdwork ,ann_text, labels_plot)
+  pyschometrics_ridges(plot_df=baseline_group4 ,ann_text=ann_text ,
+                       labels_plot=labels_plot , likert_label=likert_label )
   
-  
+  ## un comment to display histograms
+  #plot_pyschometrics(baseline_group4 ,ann_text, labels_plot)
   
 })
+
+
 
 
 ## Monthlty
 ##---------------------------------------------------------
-## conflict month
-output$conflict_month <- renderPlot({ #renderPlotly
+##Group 1:Dealing with conflict,Well-being,Dealing with Stress,Perceived Stress scale,Self-efficacy
+output$group1_month <- renderPlot({ #renderPlotly
 
-  conflict_month <- c("sc_conflict" , "sc_dealstress" , "sc_well" , "sc_percstress")
+  group1_month <- c("sc_conflict" , "sc_well", "sc_dealstress"  , "sc_percstress" ,"sc_eff")
   
   
-  monthly_conflict <- monthly_psy %>% 
-    select(conflict_month) %>% 
+  monthly_group1 <- monthly_psy %>% 
+    select(group1_month) %>% 
     gather(variable,value ) %>% 
     mutate(var_name_lab=gsub("sc_","",variable)) %>% 
     left_join(labels %>% select(-id_master))
   
-  labels_plot <- unique(monthly_conflict$var_label)
-  names(labels_plot) <- conflict_month
+  labels_plot <- unique(monthly_group1$var_label)
+  names(labels_plot) <- group1_month
   
   
   ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
+  likert_label <- c("","Strongly disagree","Disagree",
+                    "Neither agree nor disagree","Agree","Strongly agree")
   
-  plot_pyschometrics(monthly_conflict ,ann_text, labels_plot)
+  pyschometrics_ridges(plot_df=monthly_group1 ,ann_text=ann_text ,
+                       labels_plot=labels_plot , likert_label=likert_label )
+  
+  ## un comment to display histograms
+  #plot_pyschometrics(monthly_group1 ,ann_text, labels_plot)
   
   
   
 })
 
 
-## belong_month month
-output$belong_month <- renderPlot({ #renderPlotly
+
+#Group 2:Belonging Motivation 1 Problem solving 
+## --Time management Teamwork Motivation 2 Behaviors Employee satisfaction
+
+
+output$group2_month <- renderPlot({ #renderPlotly
  
-  belong_month <- c("sc_belong", "sc_workplace", "sc_problem" , "sc_behave")
+  group2_month <- c("sc_belong", "sc_motiv","sc_problem", "sc_team","sc_behave" , "sc_satis")
   
   
-  monthly_belong <- monthly_psy %>% 
-    select(belong_month) %>% 
+  monthly_group2 <- monthly_psy %>% 
+    select(group2_month) %>% 
     gather(variable,value ) %>% 
     mutate(var_name_lab=gsub("sc_","",variable)) %>% 
     left_join(labels %>% select(-id_master))
   
-  labels_plot <- unique(monthly_belong$var_label)
-  names(labels_plot) <- belong_month
+  labels_plot <- unique(monthly_group2$var_label)
+  names(labels_plot) <- group2_month
   
   
   ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
   
-  plot_pyschometrics(monthly_belong ,ann_text, labels_plot)
+  likert_label <- c("Disagree","Neither agree nor disagree","Agree","Strongly agree")
+  
+  pyschometrics_ridges(plot_df=monthly_group2 ,ann_text=ann_text ,
+                       labels_plot=labels_plot , likert_label=likert_label )
+  
+  ## un comment to display histograms
+  
+ # plot_pyschometrics(monthly_group2 ,ann_text, labels_plot)
   
   
   
 })
 
 
-## efficacy  month
-output$efficacy_month <- renderPlot({ #renderPlotly
-  
-  efficacy_month <- c("sc_belong", "sc_workplace", "sc_problem" , "sc_behave")
-  monthly_efficacy <- monthly_psy %>% 
-    select(efficacy_month) %>% 
-    gather(variable,value ) %>% 
-    mutate(var_name_lab=gsub("sc_","",variable)) %>% 
-    left_join(labels %>% select(-id_master))
-  
-  labels_plot <- unique(monthly_efficacy$var_label)
-  names(labels_plot) <- efficacy_month
-    ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
-  
-  plot_pyschometrics(monthly_efficacy ,ann_text, labels_plot)
-  
-  
-  
-})
+
 
 
 ## Weekly
 ##---------------------------------------------------------
 ## weekly pshyco
-output$psycho_week <- renderPlot({ #renderPlotly
+output$group1_weekly <- renderPlot({ #renderPlotly
   
   weekly_vars <- c("sc_check_in" , "sc_behave" , "sc_satis" )
   
@@ -988,7 +960,14 @@ output$psycho_week <- renderPlot({ #renderPlotly
   
   ann_text <- data.frame(x=c(1.5,4.9),y=c(-.5,-.5),label=c("Low","High"))
   
-  plot_pyschometrics(weekly_metrics ,ann_text, labels_plot)
+  likert_label <- c("","Strongly disagree","Disagree",
+                    "Neither agree nor disagree","Agree","Strongly agree")
+  
+  pyschometrics_ridges(plot_df=weekly_metrics ,ann_text=ann_text ,
+                       labels_plot=labels_plot , likert_label=likert_label )
+  
+  ## un comment to display histograms
+ # plot_pyschometrics(weekly_metrics ,ann_text, labels_plot)
   
   
   

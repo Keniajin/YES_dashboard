@@ -205,60 +205,26 @@ tabItem("baseline",
           column(6,
                  div(#class="youth_page",
                    "Baseline Big Five:",
-                   #plotlyOutput("baseline_psy_big_5")
-                   plotOutput("baseline_psy_big_5")
+                  plotOutput("baseline_psy_big_5")
                  )) ,
          
         
           column(6,
                  div(#class="youth_page",
-                   "Baseline Big Five Ridges:",
-                   #plotlyOutput("baseline_psy_big_5")
-                   plotOutput("baseline_psy_big_5_2")
+                   "Group 2",
+                 plotOutput("group2_base")
                  )),
           column(6,
-                 "Self-efficacy, Dealing with conflict , Self-Control and Dealing with stress",
+                 "Group 3",
                  div(
-                   plotOutput("self_control")
+                   plotOutput("group3_base")
                  )
                  
           ),
           column(6,
-                 "Self-efficacy, Dealing with conflict , Self-Control and Dealing with stress",
+                 "Group 4",
                  div(
-                   plotOutput("self_control_2")
-                 )
-                 
-          )
-        ),
-        fluidRow(
-          ## Basline pyschometrics
-          column(6,
-                 div(#class="youth_page",
-                   "Decision-Making, Attention to Detail, Self-esteem and Grit",
-                   #plotlyOutput("baseline_psy_big_5")
-                   plotOutput("decision")
-                 )) ,
-          column(6,
-                 "Internal Locus of Control, Perceived Stress Scale , Present day bias and Well-being (SPANE)",
-                 div(
-                   plotOutput("internal_control")
-                 )
-                 
-          )
-        ), 
-        fluidRow(
-          ## Basline pyschometrics
-          column(6,
-                 div(#class="youth_page",
-                   "Attitudes towards work, Workgroup Emo Int Profile, MMCS",
-                   #plotlyOutput("baseline_psy_big_5")
-                   plotOutput("attdwork")
-                 )) ,
-          column(6,
-                 #"Internal Locus of Control, Perceived Stress Scale , Present day bias and Well-being (SPANE)",
-                 div(
-                   #plotOutput("internal_control")
+                   plotOutput("group_4_base")
                  )
                  
           )
@@ -269,45 +235,27 @@ tabItem("monthly","Monthly Psychometrics",
         fluidRow(
           ## Weekly pyschometrics
           column(6,
-                 "Dealing with conflict, Dealing with stress, Well-being (SPANE) and Perceived Stress Scale",
+                 "Group 1",
                  div(
-                   plotOutput("conflict_month")
+                   plotOutput("group1_month")
                  )
                  
           ),
           column(6,
-                 "Belonging , Workplace , Problem solving and Behaviors",
+                 "Group 2",
                  div(
-                   plotOutput("belong_month")
+                   plotOutput("group2_month")
                  )
                  
           )
-        ),## end fluid row 1
+        )  ),##end monthly
+  tabItem("weekly","Weekly Pshychometrics",
         fluidRow(
           ## Weekly pyschometrics
-          column(6,
-                 "Self-efficacy, Motivation, Team Work and Satisfaction ",
+            column(6,
+                 "Weekly metrics",
                  div(
-                   plotOutput("efficacy_month")
-                 )
-                 
-          ),
-          column(6#,
-                # "Belonging , Workplace , Problem solving and Behaviors",
-                # div(
-                 #  plotOutput("belong_month")
-               #  )
-                 
-          )
-        )
-        ),##end monthly
-tabItem("weekly","Weekly Pshychometrics",
-        fluidRow(
-          ## Weekly pyschometrics
-            column(12,
-                 "Check In, Behaviors and Satisfaction",
-                 div(
-                   plotOutput("psycho_week")
+                   plotOutput("group1_weekly")
                  )
                  
           )
