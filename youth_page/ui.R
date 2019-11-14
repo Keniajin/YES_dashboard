@@ -28,7 +28,14 @@ shinyUI(
                                                       menuSubItem("Baseline", tabName = "baseline"),selected=T,
                                                        menuSubItem("Monthly", tabName = "monthly"),
                                                        menuSubItem("Weekly", tabName = "weekly")),
-                                "pyschometrics")
+                                "pyschometrics"),
+                             convertMenuItem(
+                               menuItem(" Longitudinal pyschometrics", 
+                                        tabName = "long_pyschometrics",icon = icon("chart-line"),
+                                       # menuSubItem("LongiBaseline", tabName = "long_baseline"),selected=T,
+                                        menuSubItem("Longitudinal Monthly", tabName = "long_monthly"),
+                                        menuSubItem("Longitudinal Weekly", tabName = "long_weekly")),
+                               "pyschometrics")
                             )# close side bar menu
                      )),
     dashboardBody(
@@ -142,11 +149,13 @@ shinyUI(
               column(6,
                      div(#class="youth_page",
                          "Weekly Surveys",
+                         tags$br(),
                          ## define a drop down for the different companies
                          ## can we split per region ? Confirm with George K
-                         uiOutput('select_co') ,
+                         div(style="display: inline-block;vertical-align:top;", uiOutput('select_co')) ,
+                         div(style="display: inline-block;vertical-align:top;",uiOutput('select_placement')),
                          tags$br(),
-                         tags$br(),
+                    
                          plotlyOutput("weekly_survey_co")
                      )) ,
               column(6,
@@ -249,7 +258,8 @@ tabItem("monthly","Monthly Psychometrics",
                  
           )
         )  ),##end monthly
-  tabItem("weekly","Weekly Pshychometrics",
+#-----
+tabItem("weekly","Weekly Pshychometrics",
         fluidRow(
           ## Weekly pyschometrics
             column(6,
@@ -261,7 +271,34 @@ tabItem("monthly","Monthly Psychometrics",
           )
         )
         
-        )## end weekly
+        ),## end weekly
+tabItem("long_weekly","Weekly longitudinal Pshychometrics",
+        fluidRow(
+          ## Weekly longitudinal pyschometrics
+          column(8,
+                 uiOutput('select_week_metric') ,
+                 tags$br(),
+                 "Weekly longitudinal metrics",
+                 div(
+                   #plotlyOutput("longtudinal_weekly")
+                   plotOutput("longtudinal_weekly")
+                 )
+                 
+          )
+        )
+        
+),## end weekly longitudinal
+tabItem("long_monthly","Monthly longitudinal Pshychometrics",
+        fluidRow(
+          ## Weekly pyschometrics
+          column(6,
+                 "Monthly longitudinal metrics"#,
+                
+                 
+          )
+        )
+        
+)
 )# end tab items
 )## end dashboard boday
 )) #end shiny UI and dashboard page

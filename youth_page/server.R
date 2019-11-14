@@ -49,6 +49,8 @@ placed_weekly <- placed_weekly %>%
          yes_week = aweek::date2week(submitted,week_start = 5, floor_day = T),
          yes_week_mnth =paste0(yes_week , "(",month,")"))
 
+
+
 ## merge monthtly 
 placed_monthly <- monthly %>% 
   inner_join( placed_youth_unique,by=c("user_id"='youth_id_num')) 
@@ -191,6 +193,26 @@ monthly_psy <- readr::read_csv("data/processed/monthly_psy.csv")
 labels <- read_excel("./docs/items_structure.xlsx", sheet ="Labels") 
 
 
+## merrge the placed weekly data with the metrics
+placed_weekly_psy <- placed_weekly %>% 
+  select(yes_week_mnth,year_month_week ,user_id,submitted,
+         month, yes_week,age_in_yrs ,`Company Name`) %>% 
+  left_join(weekly_psy , by =c("user_id", "submitted") ) %>% 
+  group_by(user_id) %>% arrange(submitted) %>% mutate(week_rank=1:n()) %>% 
+  mutate(week1_check_in=first(sc_check_in)) %>% 
+  mutate(direction_wk1=sc_check_in/week1_check_in) %>% 
+  mutate(direction_wk1 = ifelse(direction_wk1>0,"Increase",
+                                ifelse(direction_wk1<0,"Decrease",
+                                       ifelse(direction_wk1==0,"No Change","Missing")))) %>% 
+  group_by(user_id) %>%
+  arrange(week_rank) %>% 
+  mutate(sc_check_in_lw = dplyr::lag(sc_check_in, n = 1, default = NA) ,
+         direction_lw=sc_check_in-sc_check_in_lw,
+         direction_lw=ifelse(direction_lw>0,"Increase",
+                             ifelse(direction_lw<0,"Decrease",
+                                    ifelse(direction_lw==0,"No Change","Missing")))) %>% 
+  select(yes_week, week_rank,user_id,submitted, everything())
+
 
 shinyServer(function(input, output, session) {
 
@@ -203,7 +225,7 @@ shinyServer(function(input, output, session) {
     baseline_youths <- placed_baseline %>%
       summarise(N=n_distinct(user_id))%>% unlist()
     
-    infoBox( "Youths with baseline survey",
+    infoBox( tags$p(style = "font-size: 12px; color: #19222b;","Youths with baseline survey"),
              value = tags$p(style = "font-size: 22px; color: #f48632;",  paste0(baseline_youths)), 
              subtitle = tags$p(style = "font-size: 10px;",paste0("with ", total_baseline ," surveys")) ,
              icon = icon("thumbs-up", lib = "glyphicon"),
@@ -219,8 +241,8 @@ output$tot_weekly <-renderInfoBox({
     weekly_youths <- placed_weekly %>%
       summarise(N=n_distinct(user_id)) %>% unlist()
     
-    infoBox("Youths with weekly surveys ", 
-            value = tags$p(style = "font-size: 15px;  color: #708fb2;",  paste0(weekly_youths  )),
+    infoBox(tags$p(style = "font-size: 12px; color: #19222b;","Youths with weekly surveys "), 
+            value = tags$p(style = "font-size: 22px;  color: #708fb2;",  paste0(weekly_youths  )),
             subtitle = tags$p(style = "font-size: 10px;",paste0("with ", total_weekly," surveys")) ,
             color = "navy",
             icon = icon("thumbs-up", lib = "glyphicon"),
@@ -235,8 +257,8 @@ output$tot_monthly <-renderInfoBox({
  monthly_youths <- placed_monthly %>%
     summarise(N=n_distinct(user_id)) %>% unlist()
  
-  infoBox( "Youths with monthly surveys",
-           value = tags$p(style = "font-size: 15px; color: #19222b;",  paste0( monthly_youths  )), 
+  infoBox( tags$p(style = "font-size: 12px; color: #19222b;",  "Youths with monthly surveys"),
+           value = tags$p(style = "font-size: 22px; color: #19222b;",  paste0( monthly_youths  )), 
           subtitle = tags$p(style = "font-size: 10px;", paste0("with ",  total_monthly," surveys") ),
           color = "lime",
           icon = icon("thumbs-up", lib = "glyphicon"),
@@ -482,7 +504,7 @@ plot_survey_bars <- function(company_df ,company_name , survey){
 }
 
 
-## select from drop down
+## select company from drop down
 output$select_co <- renderUI({
 all_companies <-as.vector(c("Overall",
     unique(overall_weeks_company$`Company Name`)))
@@ -501,6 +523,18 @@ output$select_co_month <- renderUI({
               selected = "Overall")
 })
 
+
+## select the type of placement by company
+## select from drop down
+output$select_placement <- renderUI({
+  type_placement <-as.vector(c("Overall","Host","Internal"))
+  
+  radioButtons(inputId ="placement", label= "Select placement",
+               choiceNames  = type_placement,
+               choiceValues =c("overall","host","internal"),
+              selected = "Overall",
+              inline = T)
+})
 
 ## weekly graph
 company_weekly <- reactive({
@@ -971,6 +1005,84 @@ output$group1_weekly <- renderPlot({ #renderPlotly
   
   
   
+})
+
+##
+## Weekly Pyschometrics Longitudinal
+##---------------------------------------------------------
+##
+
+filter_data <- function(placed_weekly_psy , metric){
+  plot_df <-  placed_weekly_psy %>% 
+    group_by(user_id) %>% 
+    arrange(submitted) %>% 
+    mutate(week_rank=1:n()) %>% 
+    #mutate(week1_metric=(first(base::get(metric)))) %>% 
+    #mutate(change_var=(base::get(metric))/week1_metric) %>% 
+    select(yes_week, week_rank,metric, user_id,submitted,`Company Name`,direction_lw )
+}
+
+longitudinal_graph_metrics <- function(plot_df , time_rank,metric ){
+  
+  stat_box_data <- function(y, upper_limit = max(plot_df[metric], na.rm = T) * 1.15) {
+    return( 
+      data.frame(
+        y = 0.95 * upper_limit,
+        label = paste('n =', length(y), '\n',
+                      'mean =', round(mean(y, na.rm = T), 1), '\n')
+      )
+    )
+  }
+  
+  plot_df <- plot_df %>% 
+    mutate(time_rank_cat=get(time_rank) ,
+           time_rank_cat=as.factor(time_rank_cat))
+  
+ p <- ggplot(plot_df, aes_string("time_rank_cat",metric)) + 
+    geom_boxplot(width=0.5) + 
+    geom_jitter(aes(color=direction_lw ), alpha=0.9)+
+    stat_summary(fun.y=median, geom="line", aes(group=1),  color="black")  + 
+    stat_summary(fun.y=median, geom="point", color="black")+
+    stat_summary(
+      fun.data = stat_box_data, 
+      geom = "text", 
+      hjust = 0.5,
+      vjust = 0.9
+    )+
+    theme_minimal() +
+    scale_color_manual(values = c("#19222B","#F48632", "#939393"),na.translate = F) +
+    xlab("Week counter") 
+  
+  
+  # p <- ggplot(plot_df , aes_string(time_rank,metric)) +
+  #   geom_line(aes(group=user_id , color=user_id)) + 
+  #   geom_smooth(se=FALSE, colour="black", size=2) +
+  #   theme_minimal() +
+  #   xlab(paste0(time_rank," Count")) +
+  #   ylab(paste0("", metric)) +
+  #   theme(legend.position = "none")
+  
+  return(p)
+}
+
+## select from drop down
+output$select_week_metric <- renderUI({
+  weekly_vars <- c("sc_check_in" , "sc_behave" , "sc_satis" )
+  selectInput("weekly_metric", "Select the metric to plot",
+              choices = weekly_vars,
+              selected = "sc_check_in")
+})
+
+
+output$longtudinal_weekly  <- renderPlot({ #renderPlotly
+  
+  weekly_vars <- c("sc_check_in" , "sc_behave" , "sc_satis" )
+  
+  plot_df <- filter_data(placed_weekly_psy = placed_weekly_psy  ,  input$weekly_metric ) %>% 
+    ungroup()
+  
+p <- longitudinal_graph_metrics(plot_df,"week_rank",input$weekly_metric  )#input$weekly_metric
+ p
 })
 
 

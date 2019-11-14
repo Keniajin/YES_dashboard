@@ -3,7 +3,7 @@
 packages_install <-c("tidyverse","flexdashboard","ggpubr","leaflet",
                  "devtools","sf", "shinyjs", "rgdal","maptools", "rgeo", "readxl",
                  "stringi", "RColorBrewer", "plotly","aweek","ggridges" ,"expss" ,"Hmisc",
-                 "viridis","ggridges") 
+                 "viridis","ggridges" ,"devtools") 
 
 
 ## install packages from bioconductor or CRAN
@@ -27,3 +27,4 @@ for(i in 1:length(packagesLoad)){
 ## indpedent packages from shiny
 devtools::install_github("hadley/shinySignals")
 devtools::install_github("jcheng5/bubbles")
+devtools::install_github("leonawicz/apputils")

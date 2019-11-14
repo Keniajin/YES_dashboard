@@ -14,6 +14,7 @@ library(RColorBrewer)
 library(leaflet)
 library(flexdashboard)
 library(shinyjs)
+library(apputils)
 '%ni%' <- Negate('%in%')
 
 #library(billboarder)
@@ -179,11 +180,16 @@ total_companies_R <- reactive({
 output$total_injection<-renderInfoBox({
   x <- "stat_icon_normal_dist_white.png"
   total_injection <- total_injection_value()
-  infoBox("Total Injection: ",paste0("R ",formatC(total_injection,format="d", big.mark = ",") ),
+  
+  #ic <- apputils::icon(list(src = "rand_icon.png", width = "80px"), lib = "local")
+  
+  ic <- apputils::icon(list(src = "https://image.flaticon.com/icons/svg/38/38236.svg", width = "80px"), lib = "local")
+  
+  apputils::infoBox("Total Injection: ",paste0("R ",formatC(total_injection,format="d", big.mark = ",") ),
           subtitle = "in the local economies" ,
-          icon = shiny::icon("money-bill-wave-alt" ,  "fa-1x"),
+          #icon = shiny::icon("money-bill-wave-alt" ,  "fa-1x"),
           ## edit icon
-          #icon=icon(list(src=x, width="80px"), lib="local"),
+          icon=ic,
          width = 4,fill = TRUE)
 })
 
