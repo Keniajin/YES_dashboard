@@ -1,7 +1,6 @@
 library(shiny)
 library(shinyFiles)
 library(DT) ## making tables
-library(shiny)
 library(shinySignals)   # devtools::install_github("hadley/shinySignals")
 library(dplyr)
 library(shinydashboard)
@@ -14,7 +13,7 @@ library(RColorBrewer)
 library(leaflet)
 library(flexdashboard)
 library(shinyjs)
-library(apputils)
+#library(apputils)
 '%ni%' <- Negate('%in%')
 
 #library(billboarder)
@@ -123,14 +122,23 @@ output$tbl <-  DT::renderDT({
                   #  initComplete = JS('function(setting, json) { alert("done"); }'))
 })
 
+df_download <- reactive({
+  prov_money %>% select(-X1)
+})
+
 ## download the province data 
 output$downloadData <- downloadHandler(
-     filename = function() {
-       paste('data-', Sys.Date(), '.csv', sep='')
-     },
-     content = function(tbl) {
-       write.csv(data, tbl)
-})
+  filename = function() {
+    paste('province_data-', Sys.Date(), '.csv', sep='')
+  },
+  content = function(file) {
+    write_csv(df_download(), file)
+  })
+
+
+
+
+
 
 
 

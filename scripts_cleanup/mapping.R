@@ -10,9 +10,9 @@ sa_shp <- rgdal::readOGR("SA_shp/ZA_province.shp")
 sa_shp_data <- broom::tidy(sa_shp, region = "ID_1" )
 
 
-
+prov_money <- read_csv("data/processed/prov_money.csv")
 centroid <- aggregate(cbind(long,lat) ~ id, data=sa_shp_data, FUN=mean) %>% 
-  left_join(df ,  by=c("id"="id"))
+  dplyr::left_join(df ,  by=c("id"="id"))
 
 centroid <- sf::st_read("SA_shp/ZA_province_centroid.shp") %>% 
   mutate(xy=gsub("c","",geometry)) %>% 
@@ -32,12 +32,12 @@ sa_shp_data <- sa_shp_data %>%
 
 p <- ggplot(sa_shp_data) +
   geom_polygon(aes(x = long, y = lat, group = group , 
-                   fill=total_money), color="white") +
+                   fill=expected_injection), color="white") +
   scale_fill_gradientn( colours = brewer.pal( 9 , "Reds" ) ) +
   coord_equal() +
   geom_text(data = centroid, mapping = aes(x=long, y=lat, 
                                            label=paste0(NAME_1 ,"; \n R", 
-                                                        formatC(total_money ,format="d", big.mark="," )) ))
+                                                        formatC(expected_injection ,format="d", big.mark="," )) ))
 p
 ggplotly(p,  tooltip="text") 
 
@@ -63,13 +63,18 @@ labels <- sprintf(
   sa_shp@data$NAME_1, formatC(sa_shp@data$expected_injection,format="d", big.mark = ",") ,
   sa_shp@data$no_of_youths, sa_shp@data$`Minimum met`) %>% lapply(htmltools::HTML)
 
+labels_static <- sprintf(
+  "<strong>%s</strong> <sup>(%s youths)</sup><br/><br/>",
+  sa_shp@data$NAME_1, 
+  sa_shp@data$no_of_youths) %>% lapply(htmltools::HTML)
+
 
 lopt = labelOptions(noHide = TRUE,
                     direction = 'top',
                     textOnly = TRUE)
 
 p <- leaflet(sa_shp) %>%
-  addPolygons(color = "white", 
+  addPolygons(color = "black", 
               weight = 1, 
               smoothFactor = 0.5,
               opacity = 1.0, 
@@ -87,7 +92,7 @@ p <- leaflet(sa_shp) %>%
                                                   bringToFront = TRUE)) %>% 
   addLegend(pal = pal, values = ~exact_injection, opacity = 0.7, title = NULL,
             position = "bottomright") %>% 
-  
-  addLabelOnlyMarkers( ~long, ~lat, label =  ~NAME_1, data =centroid , 
+    addLabelOnlyMarkers( ~long, ~lat, label =  labels_static, data =centroid , 
                        labelOptions = labelOptions(noHide = T, direction = 'top', textOnly = T))
-
+p
+ggsave("sample_graph.png",p)

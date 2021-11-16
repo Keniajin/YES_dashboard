@@ -53,7 +53,11 @@ Country Overview {data-width=8000}
 ======
 
 ```{r}
-shinyAppDir("prov_summary")
+fluidRow(
+    column(12,div(style = "height:1000px;background-color: white;margin: 0;padding: 0;",
+                  shinyAppDir("prov_summary",
+            options = list(width = "100%", height = "100%"))
+)))
 ```
 
 
@@ -66,7 +70,11 @@ Company Overview {data-width=300}
 Youth dashboard {data-width=8000}
 ======
 ```{r}
-shinyAppDir("youth_page")
+fluidRow(
+    column(12,div(style = "height:1000px;background-color: white;margin: 0;padding: 0;",
+shinyAppDir("youth_page",
+            options = list(width = "100%", height = "100%"))
+)))
 ```
 
 

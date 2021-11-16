@@ -1,9 +1,9 @@
 
 ## the packages being used in YES dashboard
-packages_install <-c("tidyverse","flexdashboard","ggpubr","leaflet",
+packagesLoad <-c("tidyverse","flexdashboard","ggpubr","leaflet",
                  "devtools","sf", "shinyjs", "rgdal","maptools", "rgeo", "readxl",
                  "stringi", "RColorBrewer", "plotly","aweek","ggridges" ,"expss" ,"Hmisc",
-                 "viridis","ggridges" ,"devtools") 
+                 "viridis","ggridges" ,"devtools","shinyFiles") 
 
 
 ## install packages from bioconductor or CRAN
@@ -25,6 +25,6 @@ for(i in 1:length(packagesLoad)){
 }
 
 ## indpedent packages from shiny
-devtools::install_github("hadley/shinySignals")
-devtools::install_github("jcheng5/bubbles")
-devtools::install_github("leonawicz/apputils")
+devtools::install_github('hadley/shinySignals')
+devtools::install_github('jcheng5/bubbles')
+devtools::install_github('leonawicz/apputils')

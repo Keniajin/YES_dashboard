@@ -13,6 +13,7 @@ library(flexdashboard)
 library(DT)
 library(viridis)
 library(ggridges)
+library(forcats)
 
 ## remove the exponetial notation of the data
 options(scipen = 999)
@@ -21,8 +22,7 @@ options(scipen = 999)
 ## weekly data
 ## read in the baseline data
 ## the data is cleaned with the cleaning script
-baseline <- readr::read_csv("data/processed/baseline_cleaned.csv") %>% 
-  as_factor()
+baseline <- readr::read_csv("data/processed/baseline_cleaned.csv") 
 baseline_placed <- readr::read_csv("data/processed/placed_merged_baseline.csv") 
 ## monthly survey
 ## read in the monthly and weekly data
@@ -92,6 +92,7 @@ overall_weeks_company <- placed_weekly %>%
   mutate(sum_surveys=sum(weekly_surveys) , total_placed=sum(total_youths)) %>% 
   ungroup() %>% 
   mutate(rate_response=round((weekly_surveys /total_placed)*100,2)) %>% 
+  mutate(yes_week=as.character(yes_week)) %>% 
   left_join(month_id, by="yes_week") %>% 
   mutate(time_survey = paste0(yes_week,"(", yes_week_month,")")) %>% 
   ## rename to allow reusability of functions
